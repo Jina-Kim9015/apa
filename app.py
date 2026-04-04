@@ -307,6 +307,20 @@ def init_db():
     conn.commit()
     conn.close()
 
+def delete_submission(sub_id: str):
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute("DELETE FROM submissions WHERE id = ?", (sub_id,))
+    conn.commit()
+    conn.close()
+
+def delete_all_submissions():
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute("DELETE FROM submissions")
+    conn.commit()
+    conn.close()
+
 def save_submission(sub: dict):
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
@@ -376,7 +390,7 @@ if page == "✏️ 학생 실습":
     with ci1:
         student_class = st.text_input("수업반", placeholder="예: 과학사 I2반", max_chars=30)
     with ci2:
-        student_id = st.text_input("학번", placeholder="예: 31024", max_chars=20)
+        student_id = st.text_input("학번", placeholder="예: 31524", max_chars=20)
     with ci3:
         student_name = st.text_input("이름", placeholder="예: 홍길동", max_chars=20)
     st.markdown("---")
@@ -515,9 +529,28 @@ else:
                 st.error("비밀번호가 틀렸습니다.")
         st.stop()
 
-    if st.button("로그아웃"):
-        st.session_state.admin_auth = False
-        st.rerun()
+    col_logout, col_del = st.columns([1, 1])
+    with col_logout:
+        if st.button("로그아웃", use_container_width=True):
+            st.session_state.admin_auth = False
+            st.rerun()
+    with col_del:
+        if st.button("🗑️ 전체 데이터 삭제", use_container_width=True, type="secondary"):
+            st.session_state["confirm_delete_all"] = True
+
+    if st.session_state.get("confirm_delete_all"):
+        st.warning("⚠️ 정말 전체 제출 데이터를 삭제하시겠습니까? 복구할 수 없습니다.")
+        ca, cb = st.columns(2)
+        with ca:
+            if st.button("확인 - 전체 삭제", type="primary", use_container_width=True):
+                delete_all_submissions()
+                st.session_state["confirm_delete_all"] = False
+                st.success("전체 데이터가 삭제되었습니다.")
+                st.rerun()
+        with cb:
+            if st.button("취소", use_container_width=True):
+                st.session_state["confirm_delete_all"] = False
+                st.rerun()
 
     df = load_submissions()
 
@@ -579,6 +612,23 @@ else:
                 errs = json.loads(row[f"q{i}_errors"]) if row[f"q{i}_errors"] else []
                 for e in errs:
                     st.markdown(f"- {e}")
+        st.markdown("---")
+        del_key = f"confirm_del_{row['id']}"
+        if st.button(f"🗑️ '{row['student_name']}' 제출 기록 삭제", use_container_width=True):
+            st.session_state[del_key] = True
+        if st.session_state.get(del_key):
+            st.warning(f"⚠️ '{row['student_class']} / {row['student_id']} / {row['student_name']}' 의 제출 기록을 삭제하시겠습니까?")
+            da, db_ = st.columns(2)
+            with da:
+                if st.button("확인 - 삭제", type="primary", use_container_width=True, key=f"del_confirm_{row['id']}"):
+                    delete_submission(row["id"])
+                    st.session_state[del_key] = False
+                    st.success("삭제되었습니다.")
+                    st.rerun()
+            with db_:
+                if st.button("취소", use_container_width=True, key=f"del_cancel_{row['id']}"):
+                    st.session_state[del_key] = False
+                    st.rerun()
 
     # CSV 다운로드
     st.markdown("---")
