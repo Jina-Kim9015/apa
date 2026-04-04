@@ -25,23 +25,40 @@ st.markdown("""
         margin-bottom: 0;
     }
     .question-format {
-        border: 2px solid #1a73e8;
         border-top: none;
         border-bottom: none;
-        padding: 0.3rem 1.2rem;
-        font-size: 0.92rem;
+        border-left-width: 2px;
+        border-right-width: 2px;
+        border-style: solid;
+        padding: 0.2rem 1.2rem;
+        font-size: 0.9rem;
         font-family: monospace;
-        color: #1a56db;
+        line-height: 1.3;
         background: white;
-        line-height: 1.4;
     }
     .question-body {
-        border: 2px solid #1a73e8;
         border-top: none;
+        border-left-width: 2px;
+        border-right-width: 2px;
+        border-bottom-width: 2px;
+        border-style: solid;
         border-radius: 0 0 8px 8px;
         padding: 1.2rem;
         margin-bottom: 2rem;
     }
+    /* 문항별 색상 */
+    .q1 .question-format, .q1 .question-body { border-color: #1a73e8; }
+    .q2 .question-format, .q2 .question-body { border-color: #0f9d58; }
+    .q3 .question-format, .q3 .question-body { border-color: #e37400; }
+    .q4 .question-format, .q4 .question-body { border-color: #7b1fa2; }
+    .q1-format { border-color: #1a73e8 !important; color: #1a56db; }
+    .q2-format { border-color: #0f9d58 !important; color: #0a7040; }
+    .q3-format { border-color: #e37400 !important; color: #b35a00; }
+    .q4-format { border-color: #7b1fa2 !important; color: #6a1b9a; }
+    .q1-body   { border-color: #1a73e8 !important; }
+    .q2-body   { border-color: #0f9d58 !important; }
+    .q3-body   { border-color: #e37400 !important; }
+    .q4-body   { border-color: #7b1fa2 !important; }
     .format-box {
         background: #e8f0fe;
         border-radius: 6px;
@@ -368,9 +385,13 @@ if page == "✏️ 학생 실습":
     citations = {}
     for ref in REFS:
         no = ref["no"]
-        st.markdown(f'''<div class="question-header">문항 {no}. {ref["label"]}</div>
-<div class="question-format">{ref["format_hint"]}</div>''', unsafe_allow_html=True)
-        st.markdown('<div class="question-body">', unsafe_allow_html=True)
+        color_map = {1:"#1a73e8", 2:"#0f9d58", 3:"#e37400", 4:"#7b1fa2"}
+        text_map  = {1:"#1a56db", 2:"#0a7040", 3:"#b35a00", 4:"#6a1b9a"}
+        c = color_map[no]
+        t = text_map[no]
+        st.markdown(f'''<div style="background:{c};color:white;border-radius:8px 8px 0 0;padding:0.6rem 1.2rem;font-size:1rem;font-weight:700;">문항 {no}. {ref["label"]}</div>
+<div style="border:2px solid {c};border-top:none;border-bottom:none;padding:0.2rem 1.2rem;font-size:0.9rem;font-family:monospace;color:{t};background:white;line-height:1.3;">{ref["format_hint"]}</div>
+<div style="border:2px solid {c};border-top:none;border-radius:0 0 8px 8px;padding:1.2rem;margin-bottom:2rem;">''', unsafe_allow_html=True)
 
         # 자료 정보 + 입력란 나란히
         col1, col2 = st.columns([1, 1], gap="large")
