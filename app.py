@@ -412,7 +412,7 @@ if page == "✏️ 학생 실습":
         with col1:
             st.markdown("**📋 자료 정보**")
             fields_html = "".join(
-                f"<div><b style='color:#555;min-width:80px;display:inline-block'>{k}</b> {v}</div>"
+                f"<div style='margin-bottom:2px'><b style='color:#555;min-width:80px;display:inline-block;font-size:0.85rem'>{k}</b><span style='color:#1a1a1a;font-size:0.88rem'> {v}</span></div>"
                 for k, v in ref["fields"]
             )
             st.markdown(f'<div class="ref-box">{fields_html}</div>', unsafe_allow_html=True)
