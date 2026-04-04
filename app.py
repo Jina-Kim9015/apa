@@ -15,48 +15,103 @@ st.set_page_config(
 
 st.markdown("""
 <style>
-    .ref-box {
-        background: #f8f9fa;
-        border-left: 4px solid #1a73e8;
-        border-radius: 4px;
-        padding: 1rem 1.2rem;
-        font-size: 0.9rem;
-        line-height: 1.9;
-        margin-bottom: 1rem;
+    .question-header {
+        background: #1a73e8;
+        color: white;
+        border-radius: 8px 8px 0 0;
+        padding: 0.6rem 1.2rem;
+        font-size: 1rem;
+        font-weight: 700;
+        margin-bottom: 0;
     }
-    .hint-box {
+    .question-body {
+        border: 2px solid #1a73e8;
+        border-top: none;
+        border-radius: 0 0 8px 8px;
+        padding: 1.2rem;
+        margin-bottom: 2rem;
+    }
+    .format-box {
         background: #e8f0fe;
         border-radius: 6px;
-        padding: 0.75rem 1rem;
-        font-size: 0.85rem;
+        padding: 0.65rem 1rem;
+        font-size: 0.88rem;
         font-family: monospace;
         color: #1a56db;
         margin-bottom: 1rem;
     }
+    .ref-box {
+        background: #f8f9fa;
+        border-left: 4px solid #1a73e8;
+        border-radius: 4px;
+        padding: 0.8rem 1.1rem;
+        font-size: 0.88rem;
+        line-height: 1.9;
+        margin-bottom: 0.8rem;
+    }
     .correct-box {
         background: #e6f4ea;
         border-radius: 6px;
-        padding: 0.75rem 1rem;
-        font-size: 0.85rem;
+        padding: 0.65rem 1rem;
+        font-size: 0.88rem;
         font-family: monospace;
         color: #137333;
-        margin: 0.5rem 0 1rem;
+        margin: 0.4rem 0 0.8rem;
     }
     .wrong-box {
         background: #fce8e6;
         border-radius: 6px;
-        padding: 0.75rem 1rem;
-        font-size: 0.85rem;
+        padding: 0.65rem 1rem;
+        font-size: 0.88rem;
         color: #c0392b;
-        margin: 0.5rem 0;
+        margin: 0.4rem 0;
+    }
+    .result-header {
+        background: #34a853;
+        color: white;
+        border-radius: 8px 8px 0 0;
+        padding: 0.6rem 1.2rem;
+        font-size: 1rem;
+        font-weight: 700;
+    }
+    .result-body {
+        border: 2px solid #34a853;
+        border-top: none;
+        border-radius: 0 0 8px 8px;
+        padding: 1.2rem;
+        margin-bottom: 2rem;
+    }
+    .result-header-fail {
+        background: #ea4335;
+        color: white;
+        border-radius: 8px 8px 0 0;
+        padding: 0.6rem 1.2rem;
+        font-size: 1rem;
+        font-weight: 700;
+    }
+    .result-body-fail {
+        border: 2px solid #ea4335;
+        border-top: none;
+        border-radius: 0 0 8px 8px;
+        padding: 1.2rem;
+        margin-bottom: 2rem;
     }
     div[data-testid="stSidebar"] { background: #f0f4ff; }
+    .student-info-box {
+        background: #f0f4ff;
+        border-radius: 8px;
+        padding: 1rem 1.2rem;
+        margin-bottom: 1.5rem;
+        border: 1px solid #c7d9f8;
+    }
 </style>
 """, unsafe_allow_html=True)
 
 # ─── 지정 자료 및 채점 기준 ─────────────────────────────────────
-REFS = {
-    "📗 도서 (Book)": {
+REFS = [
+    {
+        "no": 1,
+        "label": "도서 (Book)",
         "id": "book",
         "fields": [
             ("저자",    "최재천"),
@@ -64,54 +119,23 @@ REFS = {
             ("제목",    "다윈 지능"),
             ("출판사",  "사이언스북스"),
         ],
-        "hint": "형식: 저자. (연도). 제목. 출판사.",
+        "format_hint": "저자. (출판연도). 제목. 출판사.",
         "correct_display": "최재천. (2012). 다윈 지능. 사이언스북스.",
         "checks": [
-            {
-                "name": "저자",
-                "score": 25,
-                "pattern": r"최재천",
-                "error": "저자 '최재천' 이 없거나 잘못 표기되었습니다.",
-            },
-            {
-                "name": "연도",
-                "score": 25,
-                "pattern": r"\(2012\)",
-                "error": "출판연도가 (2012) 형식으로 없습니다.",
-            },
-            {
-                "name": "제목",
-                "score": 25,
-                "pattern": r"다윈\s*지능",
-                "error": "제목 '다윈 지능' 이 없거나 잘못 표기되었습니다.",
-            },
-            {
-                "name": "출판사",
-                "score": 25,
-                "pattern": r"사이언스북스",
-                "error": "출판사 '사이언스북스' 가 없거나 잘못 표기되었습니다.",
-            },
+            {"name": "저자",    "score": 25, "pattern": r"최재천",      "error": "저자 '최재천'이 없거나 잘못 표기되었습니다."},
+            {"name": "연도",    "score": 25, "pattern": r"\(2012\)",    "error": "출판연도가 (2012) 형식으로 없습니다."},
+            {"name": "제목",    "score": 25, "pattern": r"다윈\s*지능", "error": "제목 '다윈 지능'이 없거나 잘못 표기되었습니다."},
+            {"name": "출판사",  "score": 25, "pattern": r"사이언스북스", "error": "출판사 '사이언스북스'가 없거나 잘못 표기되었습니다."},
         ],
         "extra_checks": [
-            {
-                "pattern": r"최재천\.\s*\(2012\)",
-                "error": "저자 뒤에 마침표(.)가 있어야 합니다. 예: 최재천. (2012)",
-                "penalty": 10,
-            },
-            {
-                "pattern": r"2012\)\.\s*다윈",
-                "error": "연도 괄호 뒤에 마침표(.)가 있어야 합니다. 예: (2012). 다윈",
-                "penalty": 10,
-            },
-            {
-                "pattern": r"지능\.\s*사이언스",
-                "error": "제목 뒤에 마침표(.)가 있어야 합니다. 예: 다윈 지능. 사이언스북스",
-                "penalty": 10,
-            },
+            {"pattern": r"최재천\.\s*\(2012\)",  "error": "저자 뒤 마침표가 없습니다. 예: 최재천. (2012)", "penalty": 10},
+            {"pattern": r"2012\)\.\s*다윈",      "error": "연도 괄호 뒤 마침표가 없습니다. 예: (2012). 다윈", "penalty": 10},
+            {"pattern": r"지능\.\s*사이언스",    "error": "제목 뒤 마침표가 없습니다. 예: 다윈 지능. 사이언스북스", "penalty": 10},
         ],
     },
-
-    "📄 학술논문 (Journal)": {
+    {
+        "no": 2,
+        "label": "학술논문 (Journal)",
         "id": "journal",
         "fields": [
             ("저자",    "김민수, 이지영"),
@@ -122,67 +146,25 @@ REFS = {
             ("페이지",  "25-52"),
             ("DOI",    "https://doi.org/10.30916/kera.59.3.25"),
         ],
-        "hint": "형식: 저자. (연도). 논문제목. 학술지명, 권(호), 페이지. DOI",
+        "format_hint": "저자. (출판연도). 논문제목. 학술지명, 권(호), 페이지. DOI",
         "correct_display": "김민수, 이지영. (2021). 코로나19 이후 비대면 교육의 효과성 분석. 교육학연구, 59(3), 25-52. https://doi.org/10.30916/kera.59.3.25",
         "checks": [
-            {
-                "name": "저자",
-                "score": 15,
-                "pattern": r"김민수.{0,5}이지영",
-                "error": "저자 '김민수, 이지영' 이 없거나 잘못 표기되었습니다.",
-            },
-            {
-                "name": "연도",
-                "score": 15,
-                "pattern": r"\(2021\)",
-                "error": "출판연도가 (2021) 형식으로 없습니다.",
-            },
-            {
-                "name": "논문제목",
-                "score": 15,
-                "pattern": r"코로나19\s*이후\s*비대면\s*교육의\s*효과성\s*분석",
-                "error": "논문제목이 없거나 잘못 표기되었습니다.",
-            },
-            {
-                "name": "학술지명",
-                "score": 15,
-                "pattern": r"교육학연구",
-                "error": "학술지명 '교육학연구' 가 없거나 잘못 표기되었습니다.",
-            },
-            {
-                "name": "권호",
-                "score": 15,
-                "pattern": r"59\s*\(\s*3\s*\)",
-                "error": "권호가 59(3) 형식으로 없습니다.",
-            },
-            {
-                "name": "페이지",
-                "score": 15,
-                "pattern": r"25[-–]52",
-                "error": "페이지 '25-52' 가 없거나 잘못 표기되었습니다.",
-            },
-            {
-                "name": "DOI",
-                "score": 10,
-                "pattern": r"doi\.org/10\.30916/kera\.59\.3\.25",
-                "error": "DOI 주소가 없거나 잘못 표기되었습니다.",
-            },
+            {"name": "저자",    "score": 15, "pattern": r"김민수.{0,5}이지영",                                    "error": "저자 '김민수, 이지영'이 없거나 잘못 표기되었습니다."},
+            {"name": "연도",    "score": 15, "pattern": r"\(2021\)",                                              "error": "출판연도가 (2021) 형식으로 없습니다."},
+            {"name": "논문제목","score": 15, "pattern": r"코로나19\s*이후\s*비대면\s*교육의\s*효과성\s*분석",     "error": "논문제목이 없거나 잘못 표기되었습니다."},
+            {"name": "학술지명","score": 15, "pattern": r"교육학연구",                                            "error": "학술지명 '교육학연구'가 없거나 잘못 표기되었습니다."},
+            {"name": "권호",    "score": 15, "pattern": r"59\s*\(\s*3\s*\)",                                      "error": "권호가 59(3) 형식으로 없습니다."},
+            {"name": "페이지",  "score": 15, "pattern": r"25[-–]52",                                              "error": "페이지 '25-52'가 없거나 잘못 표기되었습니다."},
+            {"name": "DOI",     "score": 10, "pattern": r"doi\.org/10\.30916/kera\.59\.3\.25",                    "error": "DOI 주소가 없거나 잘못 표기되었습니다."},
         ],
         "extra_checks": [
-            {
-                "pattern": r"이지영\.\s*\(2021\)",
-                "error": "마지막 저자 뒤에 마침표(.)가 있어야 합니다. 예: 이지영. (2021)",
-                "penalty": 10,
-            },
-            {
-                "pattern": r"교육학연구,\s*59",
-                "error": "학술지명과 권호 사이에 쉼표(,)가 있어야 합니다. 예: 교육학연구, 59(3)",
-                "penalty": 10,
-            },
+            {"pattern": r"이지영\.\s*\(2021\)", "error": "마지막 저자 뒤 마침표가 없습니다. 예: 이지영. (2021)", "penalty": 10},
+            {"pattern": r"교육학연구,\s*59",    "error": "학술지명과 권호 사이 쉼표가 없습니다. 예: 교육학연구, 59(3)", "penalty": 10},
         ],
     },
-
-    "🌐 웹사이트 (Website)": {
+    {
+        "no": 3,
+        "label": "웹사이트 (Website)",
         "id": "website",
         "fields": [
             ("저자/기관",  "한국교육개발원"),
@@ -191,50 +173,20 @@ REFS = {
             ("웹사이트명", "한국교육개발원"),
             ("URL",       "https://kedi.re.kr/kedi/main/main.do"),
         ],
-        "hint": "형식: 저자/기관. (연도, Month Day). 제목. 웹사이트명. URL",
+        "format_hint": "저자/기관. (연도, Month Day). 제목. 웹사이트명. URL",
         "correct_display": "한국교육개발원. (2023, May 10). 2023 교육통계 연보. 한국교육개발원. https://kedi.re.kr/kedi/main/main.do",
         "checks": [
-            {
-                "name": "저자/기관",
-                "score": 20,
-                "pattern": r"한국교육개발원",
-                "error": "저자/기관 '한국교육개발원' 이 없거나 잘못 표기되었습니다.",
-            },
-            {
-                "name": "연도·날짜",
-                "score": 25,
-                "pattern": r"\(2023,?\s*May\s*10\)",
-                "error": "날짜가 (2023, May 10) 형식으로 없습니다. 월은 영어(May)로 씁니다.",
-            },
-            {
-                "name": "제목",
-                "score": 20,
-                "pattern": r"2023\s*교육통계\s*연보",
-                "error": "제목 '2023 교육통계 연보' 가 없거나 잘못 표기되었습니다.",
-            },
-            {
-                "name": "웹사이트명",
-                "score": 15,
-                "pattern": r"한국교육개발원.{0,5}한국교육개발원",
-                "error": "웹사이트명 '한국교육개발원' 이 두 번 (저자, 사이트명) 나와야 합니다.",
-            },
-            {
-                "name": "URL",
-                "score": 20,
-                "pattern": r"kedi\.re\.kr",
-                "error": "URL 'https://kedi.re.kr/kedi/main/main.do' 가 없거나 잘못 표기되었습니다.",
-            },
+            {"name": "저자/기관", "score": 20, "pattern": r"한국교육개발원",              "error": "저자/기관 '한국교육개발원'이 없거나 잘못 표기되었습니다."},
+            {"name": "날짜",      "score": 25, "pattern": r"\(2023,?\s*May\s*10\)",       "error": "날짜가 (2023, May 10) 형식으로 없습니다. 월은 영어(May)로 씁니다."},
+            {"name": "제목",      "score": 20, "pattern": r"2023\s*교육통계\s*연보",      "error": "제목 '2023 교육통계 연보'가 없거나 잘못 표기되었습니다."},
+            {"name": "웹사이트명","score": 15, "pattern": r"한국교육개발원.{1,30}한국교육개발원", "error": "웹사이트명 '한국교육개발원'이 저자와 웹사이트명으로 두 번 나와야 합니다."},
+            {"name": "URL",       "score": 20, "pattern": r"kedi\.re\.kr",                "error": "URL 'https://kedi.re.kr/...'이 없거나 잘못 표기되었습니다."},
         ],
-        "extra_checks": [
-            {
-                "pattern": r"\(2023.*May.*10\)",
-                "error": "날짜에 월을 숫자(5)가 아닌 영어(May)로 표기해야 합니다.",
-                "penalty": 0,
-            },
-        ],
+        "extra_checks": [],
     },
-
-    "📰 신문기사 (News)": {
+    {
+        "no": 4,
+        "label": "신문기사 (News)",
         "id": "news",
         "fields": [
             ("기자",    "박지수"),
@@ -243,60 +195,29 @@ REFS = {
             ("신문사",  "한겨레"),
             ("URL",    "https://www.hani.co.kr/arti/society/education/example"),
         ],
-        "hint": "형식: 저자. (연도, Month Day). 기사제목. 신문사. URL",
+        "format_hint": "저자. (연도, Month Day). 기사제목. 신문사. URL",
         "correct_display": "박지수. (2023, September 15). 인공지능 교육, 초등학교부터 의무화 추진. 한겨레. https://www.hani.co.kr/arti/society/education/example",
         "checks": [
-            {
-                "name": "저자",
-                "score": 20,
-                "pattern": r"박지수",
-                "error": "저자 '박지수' 가 없거나 잘못 표기되었습니다.",
-            },
-            {
-                "name": "날짜",
-                "score": 25,
-                "pattern": r"\(2023,?\s*September\s*15\)",
-                "error": "날짜가 (2023, September 15) 형식으로 없습니다. 월은 영어(September)로 씁니다.",
-            },
-            {
-                "name": "기사제목",
-                "score": 20,
-                "pattern": r"인공지능\s*교육.{0,5}초등학교부터\s*의무화\s*추진",
-                "error": "기사제목이 없거나 잘못 표기되었습니다.",
-            },
-            {
-                "name": "신문사",
-                "score": 20,
-                "pattern": r"한겨레",
-                "error": "신문사 '한겨레' 가 없거나 잘못 표기되었습니다.",
-            },
-            {
-                "name": "URL",
-                "score": 15,
-                "pattern": r"hani\.co\.kr",
-                "error": "URL 'https://www.hani.co.kr/...' 가 없거나 잘못 표기되었습니다.",
-            },
+            {"name": "저자",    "score": 20, "pattern": r"박지수",                                          "error": "저자 '박지수'가 없거나 잘못 표기되었습니다."},
+            {"name": "날짜",    "score": 25, "pattern": r"\(2023,?\s*September\s*15\)",                     "error": "날짜가 (2023, September 15) 형식으로 없습니다. 월은 영어(September)로 씁니다."},
+            {"name": "기사제목","score": 20, "pattern": r"인공지능\s*교육.{0,5}초등학교부터\s*의무화\s*추진","error": "기사제목이 없거나 잘못 표기되었습니다."},
+            {"name": "신문사",  "score": 20, "pattern": r"한겨레",                                          "error": "신문사 '한겨레'가 없거나 잘못 표기되었습니다."},
+            {"name": "URL",     "score": 15, "pattern": r"hani\.co\.kr",                                    "error": "URL 'https://www.hani.co.kr/...'이 없거나 잘못 표기되었습니다."},
         ],
         "extra_checks": [
-            {
-                "pattern": r"박지수\.\s*\(2023",
-                "error": "저자 뒤에 마침표(.)가 있어야 합니다. 예: 박지수. (2023",
-                "penalty": 10,
-            },
+            {"pattern": r"박지수\.\s*\(2023", "error": "저자 뒤 마침표가 없습니다. 예: 박지수. (2023", "penalty": 10},
         ],
     },
-}
+]
 
 ADMIN_PASSWORD = "apa2025"
 
-
-# ─── 규칙 기반 채점 함수 ────────────────────────────────────────
+# ─── 채점 함수 ─────────────────────────────────────────────────
 def grade_citation(ref: dict, citation: str) -> dict:
     score = 0
     errors = []
     passed = []
 
-    # 핵심 항목 채점
     for check in ref["checks"]:
         if re.search(check["pattern"], citation, re.IGNORECASE):
             score += check["score"]
@@ -304,7 +225,6 @@ def grade_citation(ref: dict, citation: str) -> dict:
         else:
             errors.append(check["error"])
 
-    # 구두점 검사 (감점)
     penalty = 0
     for ec in ref.get("extra_checks", []):
         if not re.search(ec["pattern"], citation, re.IGNORECASE):
@@ -318,9 +238,9 @@ def grade_citation(ref: dict, citation: str) -> dict:
     if is_correct:
         feedback = "훌륭합니다! APA 형식의 핵심 요소를 모두 정확하게 작성했습니다."
     elif score >= 60:
-        feedback = f"일부 요소는 맞았지만 {', '.join([e.split(' ')[0] for e in errors[:2]])} 부분을 다시 확인해보세요."
+        feedback = f"일부 요소는 맞았지만 아래 오류를 다시 확인해보세요."
     else:
-        feedback = "APA 형식의 기본 구조부터 다시 확인해보세요. 힌트를 참고하세요."
+        feedback = "APA 형식의 기본 구조부터 다시 확인해보세요."
 
     return {
         "score": score,
@@ -331,7 +251,6 @@ def grade_citation(ref: dict, citation: str) -> dict:
         "correct_format": ref["correct_display"],
     }
 
-
 # ─── 데이터베이스 ───────────────────────────────────────────────
 DB_PATH = "submissions.db"
 
@@ -341,14 +260,26 @@ def init_db():
     c.execute("""
         CREATE TABLE IF NOT EXISTS submissions (
             id            TEXT PRIMARY KEY,
+            student_class TEXT,
+            student_id    TEXT,
             student_name  TEXT,
-            ref_type      TEXT,
-            citation      TEXT,
-            score         INTEGER,
-            is_correct    INTEGER,
-            errors        TEXT,
-            feedback      TEXT,
-            correct_format TEXT,
+            q1_citation   TEXT,
+            q1_score      INTEGER,
+            q1_correct    INTEGER,
+            q1_errors     TEXT,
+            q2_citation   TEXT,
+            q2_score      INTEGER,
+            q2_correct    INTEGER,
+            q2_errors     TEXT,
+            q3_citation   TEXT,
+            q3_score      INTEGER,
+            q3_correct    INTEGER,
+            q3_errors     TEXT,
+            q4_citation   TEXT,
+            q4_score      INTEGER,
+            q4_correct    INTEGER,
+            q4_errors     TEXT,
+            total_score   INTEGER,
             timestamp     TEXT
         )
     """)
@@ -359,12 +290,16 @@ def save_submission(sub: dict):
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     c.execute(
-        "INSERT OR REPLACE INTO submissions VALUES (?,?,?,?,?,?,?,?,?,?)",
+        """INSERT OR REPLACE INTO submissions VALUES
+        (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
         (
-            sub["id"], sub["student_name"], sub["ref_type"], sub["citation"],
-            sub["score"], 1 if sub["is_correct"] else 0,
-            json.dumps(sub["errors"], ensure_ascii=False),
-            sub["feedback"], sub["correct_format"], sub["timestamp"],
+            sub["id"],
+            sub["student_class"], sub["student_id"], sub["student_name"],
+            sub["q1_citation"], sub["q1_score"], sub["q1_correct"], json.dumps(sub["q1_errors"], ensure_ascii=False),
+            sub["q2_citation"], sub["q2_score"], sub["q2_correct"], json.dumps(sub["q2_errors"], ensure_ascii=False),
+            sub["q3_citation"], sub["q3_score"], sub["q3_correct"], json.dumps(sub["q3_errors"], ensure_ascii=False),
+            sub["q4_citation"], sub["q4_score"], sub["q4_correct"], json.dumps(sub["q4_errors"], ensure_ascii=False),
+            sub["total_score"], sub["timestamp"],
         ),
     )
     conn.commit()
@@ -373,9 +308,7 @@ def save_submission(sub: dict):
 def load_submissions() -> pd.DataFrame:
     conn = sqlite3.connect(DB_PATH)
     try:
-        df = pd.read_sql_query(
-            "SELECT * FROM submissions ORDER BY timestamp DESC", conn
-        )
+        df = pd.read_sql_query("SELECT * FROM submissions ORDER BY timestamp DESC", conn)
     except Exception:
         df = pd.DataFrame()
     conn.close()
@@ -383,15 +316,10 @@ def load_submissions() -> pd.DataFrame:
 
 init_db()
 
-
 # ─── 사이드바 ──────────────────────────────────────────────────
 st.sidebar.title("📚 APA 7판 실습")
 st.sidebar.markdown("---")
-page = st.sidebar.radio(
-    "메뉴",
-    ["✏️ 학생 실습", "📊 관리자 대시보드"],
-    label_visibility="collapsed",
-)
+page = st.sidebar.radio("메뉴", ["✏️ 학생 실습", "📊 관리자 대시보드"], label_visibility="collapsed")
 st.sidebar.markdown("---")
 st.sidebar.markdown("**APA 7판 주요 규칙**")
 st.sidebar.markdown("""
@@ -403,108 +331,142 @@ st.sidebar.markdown("""
 - 월은 반드시 **영어**로
 """)
 
-
 # ═══════════════════════════════════════════════════════════════
 # 학생 실습 페이지
 # ═══════════════════════════════════════════════════════════════
 if page == "✏️ 학생 실습":
     st.title("✏️ APA 7판 참고문헌 실습")
-    st.caption("아래 자료 정보를 보고 APA 7판 형식에 맞게 참고문헌을 작성하세요.")
+    st.caption("4가지 자료를 모두 APA 7판 형식에 맞게 작성한 후 제출하세요.")
 
-    student_name = st.text_input("👤 학생 이름", placeholder="이름을 입력하세요", max_chars=30)
+    # 학생 정보
+    st.markdown('<div class="student-info-box">', unsafe_allow_html=True)
+    st.markdown("**👤 학생 정보 입력**")
+    ci1, ci2, ci3 = st.columns(3)
+    with ci1:
+        student_class = st.text_input("수업반", placeholder="예: 교육학과 3학년 A반", max_chars=30)
+    with ci2:
+        student_id = st.text_input("학번", placeholder="예: 20231234", max_chars=20)
+    with ci3:
+        student_name = st.text_input("이름", placeholder="예: 홍길동", max_chars=20)
+    st.markdown('</div>', unsafe_allow_html=True)
+
     st.markdown("---")
 
-    ref_label = st.selectbox("📂 자료 유형 선택", list(REFS.keys()))
-    ref = REFS[ref_label]
+    # 4문항 입력
+    citations = {}
+    for ref in REFS:
+        no = ref["no"]
+        st.markdown(f'<div class="question-header">문항 {no}. {ref["label"]}</div>', unsafe_allow_html=True)
+        st.markdown('<div class="question-body">', unsafe_allow_html=True)
 
-    col1, col2 = st.columns([1, 1], gap="large")
+        # APA 양식 안내
+        st.markdown(f"**📌 APA 작성 양식**")
+        st.markdown(f'<div class="format-box">{ref["format_hint"]}</div>', unsafe_allow_html=True)
 
-    with col1:
-        st.subheader("📋 자료 정보")
-        fields_html = "".join(
-            f"<div><b style='color:#555;min-width:90px;display:inline-block'>{k}</b> {v}</div>"
-            for k, v in ref["fields"]
-        )
-        st.markdown(f'<div class="ref-box">{fields_html}</div>', unsafe_allow_html=True)
+        # 자료 정보 + 입력란 나란히
+        col1, col2 = st.columns([1, 1], gap="large")
+        with col1:
+            st.markdown("**📋 자료 정보**")
+            fields_html = "".join(
+                f"<div><b style='color:#555;min-width:80px;display:inline-block'>{k}</b> {v}</div>"
+                for k, v in ref["fields"]
+            )
+            st.markdown(f'<div class="ref-box">{fields_html}</div>', unsafe_allow_html=True)
 
-        with st.expander("💡 힌트 보기"):
-            st.markdown(f'<div class="hint-box">{ref["hint"]}</div>', unsafe_allow_html=True)
-            st.caption("이탤릭체는 *별표* 로 표시하거나 생략해도 채점에 반영합니다.")
+        with col2:
+            st.markdown("**✍️ 내 APA 참고문헌**")
+            citations[no] = st.text_area(
+                f"q{no}",
+                placeholder="여기에 작성하세요...",
+                height=130,
+                label_visibility="collapsed",
+                key=f"citation_{no}",
+            )
 
-    with col2:
-        st.subheader("✍️ 내 APA 참고문헌 작성")
-        citation = st.text_area(
-            "APA 형식으로 작성하세요",
-            placeholder="여기에 APA 참고문헌을 작성하세요...",
-            height=140,
-            label_visibility="collapsed",
-        )
-        submitted = st.button("🔍 채점하기", type="primary", use_container_width=True)
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    st.markdown("---")
+    submitted = st.button("📤 전체 제출 및 채점", type="primary", use_container_width=True)
 
     if submitted:
-        if not student_name.strip():
-            st.warning("⚠️ 이름을 먼저 입력해주세요.")
+        # 유효성 검사
+        if not student_class.strip() or not student_id.strip() or not student_name.strip():
+            st.warning("⚠️ 수업반, 학번, 이름을 모두 입력해주세요.")
             st.stop()
-        if not citation.strip():
-            st.warning("⚠️ 참고문헌을 작성해주세요.")
+        empty = [f"{r['no']}번" for r in REFS if not citations.get(r["no"], "").strip()]
+        if empty:
+            st.warning(f"⚠️ {', '.join(empty)} 문항이 비어 있습니다. 모두 작성해주세요.")
             st.stop()
 
-        result = grade_citation(ref, citation)
+        # 채점
+        results = {}
+        for ref in REFS:
+            results[ref["no"]] = grade_citation(ref, citations[ref["no"]])
 
+        total_score = int(sum(r["score"] for r in results.values()) / 4)
+
+        # 결과 출력
         st.markdown("---")
         st.subheader("📝 채점 결과")
 
-        score = result["score"]
-        is_correct = result["is_correct"]
-
-        r1, r2 = st.columns([1, 3])
-        with r1:
-            color = "#137333" if score >= 85 else ("#b45309" if score >= 60 else "#c0392b")
-            st.markdown(
-                f'<p style="font-size:2.5rem;font-weight:700;color:{color};margin:0">'
-                f'{score}<span style="font-size:1rem;font-weight:400;color:#888"> / 100</span></p>',
-                unsafe_allow_html=True,
+        # 총점 요약
+        tc1, tc2, tc3, tc4, tc5 = st.columns(5)
+        score_color = "#137333" if total_score >= 85 else ("#b45309" if total_score >= 60 else "#c0392b")
+        tc1.metric("총점 (평균)", f"{total_score}점")
+        for i, ref in enumerate(REFS):
+            r = results[ref["no"]]
+            [tc2, tc3, tc4, tc5][i].metric(
+                f"{ref['no']}번 {ref['label'].split()[0]}",
+                f"{r['score']}점",
+                "✅ 정답" if r["is_correct"] else "❌ 오답",
             )
+
+        st.markdown("---")
+
+        # 문항별 상세 결과
+        for ref in REFS:
+            r = results[ref["no"]]
+            is_correct = r["is_correct"]
+            hdr_cls = "result-header" if is_correct else "result-header-fail"
+            body_cls = "result-body" if is_correct else "result-body-fail"
             badge = "✅ 정답" if is_correct else "❌ 오답"
-            badge_style = "background:#e6f4ea;color:#137333" if is_correct else "background:#fce8e6;color:#c0392b"
+
             st.markdown(
-                f'<span style="{badge_style};padding:4px 12px;border-radius:12px;font-size:0.85rem;font-weight:600">{badge}</span>',
+                f'<div class="{hdr_cls}">문항 {ref["no"]}. {ref["label"]} — {r["score"]}점 {badge}</div>',
                 unsafe_allow_html=True,
             )
+            st.markdown(f'<div class="{body_cls}">', unsafe_allow_html=True)
 
-        with r2:
-            if result["passed"]:
-                st.markdown("**✅ 맞은 항목:** " + " · ".join(result["passed"]))
-            if result["errors"]:
-                st.markdown("**❌ 틀린 부분**")
-                for e in result["errors"]:
+            if r["passed"]:
+                st.markdown("✅ **맞은 항목:** " + " · ".join(r["passed"]))
+            if r["errors"]:
+                st.markdown("❌ **틀린 부분:**")
+                for e in r["errors"]:
                     st.markdown(f"- {e}")
 
-        st.markdown("**올바른 형식**")
-        st.markdown(
-            f'<div class="correct-box">{result["correct_format"]}</div>',
-            unsafe_allow_html=True,
-        )
-        st.info(f"💬 {result['feedback']}")
+            st.markdown("**올바른 형식:**")
+            st.markdown(f'<div class="correct-box">{r["correct_format"]}</div>', unsafe_allow_html=True)
+            st.info(f"💬 {r['feedback']}")
+            st.markdown('</div>', unsafe_allow_html=True)
 
+        # DB 저장
         sub = {
             "id": str(uuid.uuid4()),
+            "student_class": student_class.strip(),
+            "student_id": student_id.strip(),
             "student_name": student_name.strip(),
-            "ref_type": ref_label,
-            "citation": citation,
-            "score": score,
-            "is_correct": is_correct,
-            "errors": result["errors"],
-            "feedback": result["feedback"],
-            "correct_format": result["correct_format"],
+            "q1_citation": citations[1], "q1_score": results[1]["score"], "q1_correct": results[1]["is_correct"], "q1_errors": results[1]["errors"],
+            "q2_citation": citations[2], "q2_score": results[2]["score"], "q2_correct": results[2]["is_correct"], "q2_errors": results[2]["errors"],
+            "q3_citation": citations[3], "q3_score": results[3]["score"], "q3_correct": results[3]["is_correct"], "q3_errors": results[3]["errors"],
+            "q4_citation": citations[4], "q4_score": results[4]["score"], "q4_correct": results[4]["is_correct"], "q4_errors": results[4]["errors"],
+            "total_score": total_score,
             "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         }
         save_submission(sub)
         st.success("✔ 제출 완료! 관리자 대시보드에 기록되었습니다.")
 
-
 # ═══════════════════════════════════════════════════════════════
-# 관리자 대시보드 페이지
+# 관리자 대시보드
 # ═══════════════════════════════════════════════════════════════
 else:
     st.title("📊 관리자 대시보드")
@@ -534,46 +496,61 @@ else:
         st.stop()
 
     total     = len(df)
-    passed    = int(df["is_correct"].sum())
-    avg_score = int(df["score"].mean())
-    pass_rate = int(passed / total * 100)
+    avg_total = int(df["total_score"].mean())
+    avg_q1    = int(df["q1_score"].mean())
+    avg_q2    = int(df["q2_score"].mean())
+    avg_q3    = int(df["q3_score"].mean())
+    avg_q4    = int(df["q4_score"].mean())
 
-    c1, c2, c3, c4 = st.columns(4)
-    c1.metric("총 제출 수",  total)
-    c2.metric("정답 수",     passed)
-    c3.metric("평균 점수",   avg_score)
-    c4.metric("정답률",      f"{pass_rate}%")
+    st.markdown("#### 📈 전체 현황")
+    mc1, mc2, mc3, mc4, mc5 = st.columns(5)
+    mc1.metric("총 제출 수",   total)
+    mc2.metric("평균 총점",    f"{avg_total}점")
+    mc3.metric("1번 평균",     f"{avg_q1}점")
+    mc4.metric("2번 평균",     f"{avg_q2}점")
+    mc5.metric("3번·4번 평균", f"{int((avg_q3+avg_q4)/2)}점")
 
     st.markdown("---")
 
-    type_filter = st.multiselect(
-        "유형 필터",
-        options=df["ref_type"].unique().tolist(),
-        default=df["ref_type"].unique().tolist(),
-    )
-    filtered = df[df["ref_type"].isin(type_filter)].copy()
+    # 반별 필터
+    classes = df["student_class"].unique().tolist()
+    class_filter = st.multiselect("수업반 필터", options=classes, default=classes)
+    filtered = df[df["student_class"].isin(class_filter)].copy()
 
-    display = filtered[["timestamp", "student_name", "ref_type", "score", "is_correct"]].copy()
-    display.columns = ["제출 시간", "학생 이름", "유형", "점수", "정답여부"]
-    display["정답여부"] = display["정답여부"].map({1: "✅ 정답", 0: "❌ 오답"})
+    # 목록 테이블
+    display = filtered[[
+        "timestamp", "student_class", "student_id", "student_name",
+        "total_score", "q1_score", "q2_score", "q3_score", "q4_score",
+        "q1_correct", "q2_correct", "q3_correct", "q4_correct",
+    ]].copy()
+    display.columns = [
+        "제출 시간", "수업반", "학번", "이름",
+        "총점", "1번", "2번", "3번", "4번",
+        "1번정답", "2번정답", "3번정답", "4번정답",
+    ]
+    for col in ["1번정답","2번정답","3번정답","4번정답"]:
+        display[col] = display[col].map({1:"✅", 0:"❌"})
+
     st.dataframe(display, use_container_width=True, hide_index=True)
 
+    # 학생 상세
     st.markdown("---")
     st.subheader("🔎 학생별 상세 보기")
-    names = filtered["student_name"].unique().tolist()
-    sel_name = st.selectbox("학생 선택", ["(선택)"] + names)
+    student_options = filtered.apply(lambda r: f"{r['student_class']} / {r['student_id']} / {r['student_name']}", axis=1).tolist()
+    sel = st.selectbox("학생 선택", ["(선택)"] + student_options)
 
-    if sel_name != "(선택)":
-        for _, row in filtered[filtered["student_name"] == sel_name].iterrows():
-            with st.expander(f"{row['ref_type']}  |  {row['score']}점  |  {row['timestamp']}"):
-                st.markdown(f"**작성 내용:** {row['citation']}")
-                st.markdown(f"**올바른 형식:** `{row['correct_format']}`")
-                errs = json.loads(row["errors"]) if row["errors"] else []
-                if errs:
-                    for e in errs:
-                        st.markdown(f"- {e}")
-                st.info(f"💬 {row['feedback']}")
+    if sel != "(선택)":
+        idx = student_options.index(sel)
+        row = filtered.iloc[idx]
+        for i, ref in enumerate(REFS, 1):
+            with st.expander(f"문항 {i}. {ref['label']} — {row[f'q{i}_score']}점 {'✅' if row[f'q{i}_correct'] else '❌'}"):
+                st.markdown(f"**작성 내용:** {row[f'q{i}_citation']}")
+                st.markdown(f"**올바른 형식:** `{ref['correct_display']}`")
+                errs = json.loads(row[f"q{i}_errors"]) if row[f"q{i}_errors"] else []
+                for e in errs:
+                    st.markdown(f"- {e}")
 
+    # CSV 다운로드
     st.markdown("---")
     csv = filtered.to_csv(index=False).encode("utf-8-sig")
     st.download_button(
