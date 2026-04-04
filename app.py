@@ -214,7 +214,7 @@ REFS = [
     },
 ]
 
-ADMIN_PASSWORD = "apa2025"
+ADMIN_PASSWORD = "sj3156"
 
 # ─── 채점 함수 ─────────────────────────────────────────────────
 def grade_citation(ref: dict, citation: str) -> dict:
@@ -357,9 +357,9 @@ if page == "✏️ 학생 실습":
     st.markdown("**👤 학생 정보 입력**")
     ci1, ci2, ci3 = st.columns(3)
     with ci1:
-        student_class = st.text_input("수업반", placeholder="예: 교육학과 3학년 A반", max_chars=30)
+        student_class = st.text_input("수업반", placeholder="예: 과학사 I2반", max_chars=30)
     with ci2:
-        student_id = st.text_input("학번", placeholder="예: 20231234", max_chars=20)
+        student_id = st.text_input("학번", placeholder="예: 31024", max_chars=20)
     with ci3:
         student_name = st.text_input("이름", placeholder="예: 홍길동", max_chars=20)
     st.markdown("---")
