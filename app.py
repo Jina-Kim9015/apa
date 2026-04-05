@@ -4,7 +4,7 @@ import pandas as pd
 import uuid
 import re
 from datetime import datetime
-from supabase import create_client
+import requests
 
 # ─── 페이지 설정 ───────────────────────────────────────────────
 st.set_page_config(
@@ -275,38 +275,42 @@ def grade_citation(ref: dict, citation: str) -> dict:
 # ─── Supabase 연결 ─────────────────────────────────────────────
 @st.cache_resource
 def get_supabase():
-    from supabase import create_client
+    import requests
     url = st.secrets["SUPABASE_URL"]
     key = st.secrets["SUPABASE_KEY"]
     return create_client(url, key)
 
 def save_submission(sub: dict):
-    sb = get_supabase()
-    row = {
-        "id":            sub["id"],
-        "student_class": sub["student_class"],
-        "student_id":    sub["student_id"],
-        "student_name":  sub["student_name"],
-        "q1_citation":   sub["q1_citation"],
-        "q1_score":      sub["q1_score"],
-        "q1_correct":    int(sub["q1_correct"]),
-        "q1_errors":     json.dumps(sub["q1_errors"], ensure_ascii=False),
-        "q2_citation":   sub["q2_citation"],
-        "q2_score":      sub["q2_score"],
-        "q2_correct":    int(sub["q2_correct"]),
-        "q2_errors":     json.dumps(sub["q2_errors"], ensure_ascii=False),
-        "q3_citation":   sub["q3_citation"],
-        "q3_score":      sub["q3_score"],
-        "q3_correct":    int(sub["q3_correct"]),
-        "q3_errors":     json.dumps(sub["q3_errors"], ensure_ascii=False),
-        "q4_citation":   sub["q4_citation"],
-        "q4_score":      sub["q4_score"],
-        "q4_correct":    int(sub["q4_correct"]),
-        "q4_errors":     json.dumps(sub["q4_errors"], ensure_ascii=False),
-        "total_score":   sub["total_score"],
-        "timestamp":     sub["timestamp"],
-    }
-    sb.table("submissions").upsert(row).execute()
+    try:
+        sb = get_supabase()
+        row = {
+            "id":            sub["id"],
+            "student_class": sub["student_class"],
+            "student_id":    sub["student_id"],
+            "student_name":  sub["student_name"],
+            "q1_citation":   sub["q1_citation"],
+            "q1_score":      sub["q1_score"],
+            "q1_correct":    int(sub["q1_correct"]),
+            "q1_errors":     json.dumps(sub["q1_errors"], ensure_ascii=False),
+            "q2_citation":   sub["q2_citation"],
+            "q2_score":      sub["q2_score"],
+            "q2_correct":    int(sub["q2_correct"]),
+            "q2_errors":     json.dumps(sub["q2_errors"], ensure_ascii=False),
+            "q3_citation":   sub["q3_citation"],
+            "q3_score":      sub["q3_score"],
+            "q3_correct":    int(sub["q3_correct"]),
+            "q3_errors":     json.dumps(sub["q3_errors"], ensure_ascii=False),
+            "q4_citation":   sub["q4_citation"],
+            "q4_score":      sub["q4_score"],
+            "q4_correct":    int(sub["q4_correct"]),
+            "q4_errors":     json.dumps(sub["q4_errors"], ensure_ascii=False),
+            "total_score":   sub["total_score"],
+            "timestamp":     sub["timestamp"],
+        }
+        sb.table("submissions").upsert(row).execute()
+    except Exception as e:
+        st.error(f"❌ 저장 오류: {e}\n\nStreamlit Secrets에서 SUPABASE_URL과 SUPABASE_KEY를 확인해주세요.")
+        st.stop()
 
 def load_submissions() -> pd.DataFrame:
     try:
@@ -315,7 +319,8 @@ def load_submissions() -> pd.DataFrame:
         if res.data:
             return pd.DataFrame(res.data)
         return pd.DataFrame()
-    except Exception:
+    except Exception as e:
+        st.error(f"❌ DB 연결 오류: {e}\n\nStreamlit Secrets에서 SUPABASE_URL과 SUPABASE_KEY를 확인해주세요.")
         return pd.DataFrame()
 
 def delete_submission(sub_id: str):
