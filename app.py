@@ -272,95 +272,59 @@ def grade_citation(ref: dict, citation: str) -> dict:
         "correct_format": ref["correct_display"],
     }
 
-# ─── 데이터베이스 ───────────────────────────────────────────────
-DB_PATH = "submissions.db"
-
-def init_db():
-    conn = sqlite3.connect(DB_PATH)
-    c = conn.cursor()
-    c.execute("""
-        CREATE TABLE IF NOT EXISTS submissions (
-            id            TEXT PRIMARY KEY,
-            student_class TEXT,
-            student_id    TEXT,
-            student_name  TEXT,
-            q1_citation   TEXT,
-            q1_score      INTEGER,
-            q1_correct    INTEGER,
-            q1_errors     TEXT,
-            q2_citation   TEXT,
-            q2_score      INTEGER,
-            q2_correct    INTEGER,
-            q2_errors     TEXT,
-            q3_citation   TEXT,
-            q3_score      INTEGER,
-            q3_correct    INTEGER,
-            q3_errors     TEXT,
-            q4_citation   TEXT,
-            q4_score      INTEGER,
-            q4_correct    INTEGER,
-            q4_errors     TEXT,
-            total_score   INTEGER,
-            timestamp     TEXT
-        )
-    """)
-    conn.commit()
-    conn.close()
-
-def delete_submission(sub_id: str):
-    conn = sqlite3.connect(DB_PATH)
-    c = conn.cursor()
-    c.execute("DELETE FROM submissions WHERE id = ?", (sub_id,))
-    conn.commit()
-    conn.close()
-
-def delete_all_submissions():
-    conn = sqlite3.connect(DB_PATH)
-    c = conn.cursor()
-    c.execute("DELETE FROM submissions")
-    conn.commit()
-    conn.close()
+# ─── Supabase 연결 ─────────────────────────────────────────────
+@st.cache_resource
+def get_supabase():
+    from supabase import create_client
+    url = st.secrets["SUPABASE_URL"]
+    key = st.secrets["SUPABASE_KEY"]
+    return create_client(url, key)
 
 def save_submission(sub: dict):
-    conn = sqlite3.connect(DB_PATH)
-    c = conn.cursor()
-    c.execute(
-        """INSERT OR REPLACE INTO submissions VALUES
-        (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
-        (
-            sub["id"],
-            sub["student_class"], sub["student_id"], sub["student_name"],
-            sub["q1_citation"], sub["q1_score"], sub["q1_correct"], json.dumps(sub["q1_errors"], ensure_ascii=False),
-            sub["q2_citation"], sub["q2_score"], sub["q2_correct"], json.dumps(sub["q2_errors"], ensure_ascii=False),
-            sub["q3_citation"], sub["q3_score"], sub["q3_correct"], json.dumps(sub["q3_errors"], ensure_ascii=False),
-            sub["q4_citation"], sub["q4_score"], sub["q4_correct"], json.dumps(sub["q4_errors"], ensure_ascii=False),
-            sub["total_score"], sub["timestamp"],
-        ),
-    )
-    conn.commit()
-    conn.close()
+    sb = get_supabase()
+    row = {
+        "id":            sub["id"],
+        "student_class": sub["student_class"],
+        "student_id":    sub["student_id"],
+        "student_name":  sub["student_name"],
+        "q1_citation":   sub["q1_citation"],
+        "q1_score":      sub["q1_score"],
+        "q1_correct":    int(sub["q1_correct"]),
+        "q1_errors":     json.dumps(sub["q1_errors"], ensure_ascii=False),
+        "q2_citation":   sub["q2_citation"],
+        "q2_score":      sub["q2_score"],
+        "q2_correct":    int(sub["q2_correct"]),
+        "q2_errors":     json.dumps(sub["q2_errors"], ensure_ascii=False),
+        "q3_citation":   sub["q3_citation"],
+        "q3_score":      sub["q3_score"],
+        "q3_correct":    int(sub["q3_correct"]),
+        "q3_errors":     json.dumps(sub["q3_errors"], ensure_ascii=False),
+        "q4_citation":   sub["q4_citation"],
+        "q4_score":      sub["q4_score"],
+        "q4_correct":    int(sub["q4_correct"]),
+        "q4_errors":     json.dumps(sub["q4_errors"], ensure_ascii=False),
+        "total_score":   sub["total_score"],
+        "timestamp":     sub["timestamp"],
+    }
+    sb.table("submissions").upsert(row).execute()
 
 def load_submissions() -> pd.DataFrame:
-    conn = sqlite3.connect(DB_PATH)
     try:
-        df = pd.read_sql_query("SELECT * FROM submissions ORDER BY timestamp DESC", conn)
-        # 구버전 DB에 없는 컬럼 기본값으로 채우기
-        for col, default in [
-            ("student_class", "미입력"), ("student_id", "미입력"),
-            ("q1_citation",""), ("q1_score",0), ("q1_correct",0), ("q1_errors","[]"),
-            ("q2_citation",""), ("q2_score",0), ("q2_correct",0), ("q2_errors","[]"),
-            ("q3_citation",""), ("q3_score",0), ("q3_correct",0), ("q3_errors","[]"),
-            ("q4_citation",""), ("q4_score",0), ("q4_correct",0), ("q4_errors","[]"),
-            ("total_score",0),
-        ]:
-            if col not in df.columns:
-                df[col] = default
+        sb = get_supabase()
+        res = sb.table("submissions").select("*").order("timestamp", desc=True).execute()
+        if res.data:
+            return pd.DataFrame(res.data)
+        return pd.DataFrame()
     except Exception:
-        df = pd.DataFrame()
-    conn.close()
-    return df
+        return pd.DataFrame()
 
-init_db()
+def delete_submission(sub_id: str):
+    sb = get_supabase()
+    sb.table("submissions").delete().eq("id", sub_id).execute()
+
+def delete_all_submissions():
+    sb = get_supabase()
+    sb.table("submissions").delete().neq("id", "").execute()
 
 # ─── 사이드바 ──────────────────────────────────────────────────
 st.sidebar.title("📚 APA 7판 실습")
