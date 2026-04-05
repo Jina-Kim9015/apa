@@ -62,12 +62,12 @@ REFS = [
     },
     {
         "no":3,"label":"웹사이트 (Website)","id":"website",
-        "fields":[("저자/기관","한국교육개발원"),("게시일","2023, May 10"),("제목","2023 교육통계 연보"),("웹사이트명","한국교육개발원"),("URL","https://kedi.re.kr/kedi/main/main.do")],
-        "format_hint":"저자/기관. (연도, Month Day). 제목. 웹사이트명. URL",
-        "correct_display":"한국교육개발원. (2023, May 10). 2023 교육통계 연보. 한국교육개발원. https://kedi.re.kr/kedi/main/main.do",
+        "fields":[("저자/기관","한국교육개발원"),("게시일","2023.5.10"),("제목","2023 교육통계 연보"),("웹사이트명","한국교육개발원"),("URL","https://kedi.re.kr/kedi/main/main.do")],
+        "format_hint":"저자/기관. (연도, 월. 일). 제목. 웹사이트명. URL",
+        "correct_display":"한국교육개발원. (2023, 5. 10). 2023 교육통계 연보. 한국교육개발원. https://kedi.re.kr/kedi/main/main.do",
         "checks":[
             {"name":"저자/기관", "score":20,"pattern":r"한국교육개발원",                    "error":"저자/기관 '한국교육개발원'이 없거나 잘못 표기되었습니다."},
-            {"name":"날짜",      "score":25,"pattern":r"\(2023,?\s*May\s*10\)",             "error":"날짜가 (2023, May 10) 형식으로 없습니다. 월은 영어(May)로 씁니다."},
+            {"name":"날짜",      "score":25,"pattern":r"\(2023,?\s*5\s*[\.\-]\s*10\)",     "error":"날짜가 (2023, 5. 10) 형식으로 없습니다."},
             {"name":"제목",      "score":20,"pattern":r"2023\s*교육통계\s*연보",            "error":"제목 '2023 교육통계 연보'가 없거나 잘못 표기되었습니다."},
             {"name":"웹사이트명","score":15,"pattern":r"한국교육개발원.{1,30}한국교육개발원","error":"웹사이트명 '한국교육개발원'이 저자와 웹사이트명으로 두 번 나와야 합니다."},
             {"name":"URL",       "score":20,"pattern":r"kedi\.re\.kr",                      "error":"URL 'https://kedi.re.kr/...'이 없거나 잘못 표기되었습니다."},
@@ -76,12 +76,12 @@ REFS = [
     },
     {
         "no":4,"label":"신문기사 (News)","id":"news",
-        "fields":[("기자","박지수"),("게시일","2023, September 15"),("기사제목","인공지능 교육, 초등학교부터 의무화 추진"),("신문사","한겨레"),("URL","https://www.hani.co.kr/arti/society/education/example")],
-        "format_hint":"저자. (연도, Month Day). 기사제목. 신문사. URL",
-        "correct_display":"박지수. (2023, September 15). 인공지능 교육, 초등학교부터 의무화 추진. 한겨레. https://www.hani.co.kr/arti/society/education/example",
+        "fields":[("기자","박지수"),("게시일","2023.9.15"),("기사제목","인공지능 교육, 초등학교부터 의무화 추진"),("신문사","한겨레"),("URL","https://www.hani.co.kr/arti/society/education/example")],
+        "format_hint":"저자. (연도, 월. 일). 기사제목. 신문사. URL",
+        "correct_display":"박지수. (2023, 9. 15). 인공지능 교육, 초등학교부터 의무화 추진. 한겨레. https://www.hani.co.kr/arti/society/education/example",
         "checks":[
             {"name":"저자",    "score":20,"pattern":r"박지수",                                           "error":"저자 '박지수'가 없거나 잘못 표기되었습니다."},
-            {"name":"날짜",    "score":25,"pattern":r"\(2023,?\s*September\s*15\)",                      "error":"날짜가 (2023, September 15) 형식으로 없습니다. 월은 영어(September)로 씁니다."},
+            {"name":"날짜",    "score":25,"pattern":r"\(2023,?\s*9\s*[\.\-]\s*15\)",       "error":"날짜가 (2023, 9. 15) 형식으로 없습니다."},
             {"name":"기사제목","score":20,"pattern":r"인공지능\s*교육.{0,5}초등학교부터\s*의무화\s*추진","error":"기사제목이 없거나 잘못 표기되었습니다."},
             {"name":"신문사",  "score":20,"pattern":r"한겨레",                                           "error":"신문사 '한겨레'가 없거나 잘못 표기되었습니다."},
             {"name":"URL",     "score":15,"pattern":r"hani\.co\.kr",                                     "error":"URL 'https://www.hani.co.kr/...'이 없거나 잘못 표기되었습니다."},
@@ -161,7 +161,7 @@ st.sidebar.markdown("""
 - 제목·학술지·신문사 → *이탤릭*
 - 학술지: 권(호), 페이지
 - 웹·기사: `(연도, Month Day)`
-- 월은 반드시 **영어**로
+- 웹·기사: `(연도, 월. 일)` 예: (2023, 5. 10)
 """)
 
 if page == "✏️ 학생 실습":
@@ -210,19 +210,27 @@ if page == "✏️ 학생 실습":
         for ref in REFS:
             r=results[ref["no"]]
             no=ref["no"]
-            hdr="hdr-pass" if r["is_correct"] else "hdr-fail"
-            bdy="result-pass" if r["is_correct"] else "result-fail"
-            badge="✅ 정답" if r["is_correct"] else "❌ 오답"
-            st.markdown(f'<div class="{hdr}">문항 {no}. {ref["label"]} — {r["score"]}점 {badge}</div>',unsafe_allow_html=True)
-            st.markdown(f'<div class="{bdy}">',unsafe_allow_html=True)
-            # 학생 답변 표시
-            st.markdown(f"**내 답변:** {citations[no]}")
+            is_pass=r["is_correct"]
+            border_c="#34a853" if is_pass else "#ea4335"
+            hdr_bg="#34a853" if is_pass else "#ea4335"
+            badge="✅ 정답" if is_pass else "❌ 오답"
+            # 오류 목록 HTML
             if r["errors"]:
-                st.markdown("❌ **틀린 부분:**")
-                for e in r["errors"]: st.markdown(f"- {e}")
-            elif r["is_correct"]:
-                st.markdown("✅ 모든 항목이 올바르게 작성되었습니다!")
-            st.markdown('</div>',unsafe_allow_html=True)
+                err_html="<p style='margin:0.6rem 0 0.3rem;font-weight:600;color:#c0392b'>❌ 틀린 부분</p><ul style='margin:0;padding-left:1.4rem;color:#333'>"
+                for e in r["errors"]: err_html+=f"<li style='margin-bottom:4px'>{e}</li>"
+                err_html+="</ul>"
+            else:
+                err_html="<p style='color:#137333;margin:0.6rem 0 0'>✅ 모든 항목이 올바르게 작성되었습니다!</p>"
+            # 전체 박스를 HTML 한 번에
+            st.markdown(f'''
+<div style="border:2px solid {border_c};border-radius:8px;margin-bottom:1.5rem;overflow:hidden">
+  <div style="background:{hdr_bg};color:white;padding:0.6rem 1.2rem;font-size:1rem;font-weight:700">문항 {no}. {ref["label"]} — {r["score"]}점 {badge}</div>
+  <div style="padding:1rem 1.2rem;background:white">
+    <p style="margin:0 0 0.5rem;font-size:0.85rem;color:#555;font-weight:600">내 답변</p>
+    <p style="margin:0 0 0.5rem;font-size:0.95rem;color:#1a1a1a;background:#f8f9fa;padding:0.5rem 0.8rem;border-radius:4px">{citations[no]}</p>
+    {err_html}
+  </div>
+</div>''', unsafe_allow_html=True)
 
         # 100점 미만이면 다시하기 버튼
         if total_score < 100:
