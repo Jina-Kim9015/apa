@@ -1,10 +1,10 @@
 import streamlit as st
-import sqlite3
 import json
 import pandas as pd
 import uuid
 import re
 from datetime import datetime
+from supabase import create_client
 
 # ─── 페이지 설정 ───────────────────────────────────────────────
 st.set_page_config(
