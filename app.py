@@ -63,13 +63,13 @@ REFS = [
     {
         "no":3,"label":"웹사이트 (Website)","id":"website",
         "fields":[("저자/기관","한국교육개발원"),("게시일","2023.5.10"),("제목","2023 교육통계 연보"),("웹사이트명","한국교육개발원"),("URL","https://kedi.re.kr/kedi/main/main.do")],
-        "format_hint":"저자/기관. (연도, 월. 일). 제목. 웹사이트명. URL",
-        "correct_display":"한국교육개발원. (2023, 5. 10). 2023 교육통계 연보. 한국교육개발원. https://kedi.re.kr/kedi/main/main.do",
+        "format_hint":"저자/기관. (연도. 월. 일). 제목. 웹사이트명. URL",
+        "correct_display":"한국교육개발원. (2023. 5. 10). 2023 교육통계 연보. 한국교육개발원. https://kedi.re.kr/kedi/main/main.do",
         "checks":[
             {"name":"저자/기관", "score":20,"pattern":r"한국교육개발원",                    "error":"저자/기관 '한국교육개발원'이 없거나 잘못 표기되었습니다."},
-            {"name":"날짜",      "score":25,"pattern":r"\(2023,?\s*5\s*[\.\-]\s*10\)",     "error":"날짜가 (2023, 5. 10) 형식으로 없습니다."},
+            {"name":"날짜",      "score":25,"pattern":r"\(2023[\.,]\s*5[\.,]\s*10\.?\)",     "error":"날짜가 (2023. 5. 10) 형식으로 없습니다."},
             {"name":"제목",      "score":20,"pattern":r"2023\s*교육통계\s*연보",            "error":"제목 '2023 교육통계 연보'가 없거나 잘못 표기되었습니다."},
-            {"name":"웹사이트명","score":15,"pattern":r"한국교육개발원.{1,30}한국교육개발원","error":"웹사이트명 '한국교육개발원'이 저자와 웹사이트명으로 두 번 나와야 합니다."},
+            {"name":"웹사이트명","score":15,"pattern":r"한국교육개발원.{1,200}한국교육개발원","error":"웹사이트명 '한국교육개발원'이 저자와 웹사이트명으로 두 번 나와야 합니다."},
             {"name":"URL",       "score":20,"pattern":r"kedi\.re\.kr",                      "error":"URL 'https://kedi.re.kr/...'이 없거나 잘못 표기되었습니다."},
         ],
         "extra_checks":[],
@@ -77,11 +77,11 @@ REFS = [
     {
         "no":4,"label":"신문기사 (News)","id":"news",
         "fields":[("기자","박지수"),("게시일","2023.9.15"),("기사제목","인공지능 교육, 초등학교부터 의무화 추진"),("신문사","한겨레"),("URL","https://www.hani.co.kr/arti/society/education/example")],
-        "format_hint":"저자. (연도, 월. 일). 기사제목. 신문사. URL",
-        "correct_display":"박지수. (2023, 9. 15). 인공지능 교육, 초등학교부터 의무화 추진. 한겨레. https://www.hani.co.kr/arti/society/education/example",
+        "format_hint":"저자. (연도. 월. 일). 기사제목. 신문사. URL",
+        "correct_display":"박지수. (2023. 9. 15). 인공지능 교육, 초등학교부터 의무화 추진. 한겨레. https://www.hani.co.kr/arti/society/education/example",
         "checks":[
             {"name":"저자",    "score":20,"pattern":r"박지수",                                           "error":"저자 '박지수'가 없거나 잘못 표기되었습니다."},
-            {"name":"날짜",    "score":25,"pattern":r"\(2023,?\s*9\s*[\.\-]\s*15\)",       "error":"날짜가 (2023, 9. 15) 형식으로 없습니다."},
+            {"name":"날짜",    "score":25,"pattern":r"\(2023[\.,]\s*9[\.,]\s*15\.?\)",       "error":"날짜가 (2023. 9. 15) 형식으로 없습니다."},
             {"name":"기사제목","score":20,"pattern":r"인공지능\s*교육.{0,5}초등학교부터\s*의무화\s*추진","error":"기사제목이 없거나 잘못 표기되었습니다."},
             {"name":"신문사",  "score":20,"pattern":r"한겨레",                                           "error":"신문사 '한겨레'가 없거나 잘못 표기되었습니다."},
             {"name":"URL",     "score":15,"pattern":r"hani\.co\.kr",                                     "error":"URL 'https://www.hani.co.kr/...'이 없거나 잘못 표기되었습니다."},
@@ -161,7 +161,7 @@ st.sidebar.markdown("""
 - 제목·학술지·신문사 → *이탤릭*
 - 학술지: 권(호), 페이지
 - 웹·기사: `(연도, Month Day)`
-- 웹·기사: `(연도, 월. 일)` 예: (2023, 5. 10)
+- 웹·기사: `(연도. 월. 일)` 예: (2023. 5. 10)
 """)
 
 if page == "✏️ 학생 실습":
@@ -292,37 +292,61 @@ else:
 
     classes=df["student_class"].unique().tolist()
     class_filter=st.multiselect("수업반 필터",options=classes,default=classes)
-    filtered=df[df["student_class"].isin(class_filter)].copy()
+    filtered=df[df["student_class"].isin(class_filter)].copy().reset_index(drop=True)
 
-    display=filtered[["timestamp","student_class","student_id","student_name","total_score","q1_score","q2_score","q3_score","q4_score","q1_correct","q2_correct","q3_correct","q4_correct"]].copy()
-    display.columns=["제출 시간","수업반","학번","이름","총점","1번","2번","3번","4번","1번✓","2번✓","3번✓","4번✓"]
-    for col in ["1번✓","2번✓","3번✓","4번✓"]:
-        display[col]=display[col].map({1:"✅",0:"❌",True:"✅",False:"❌"})
-    st.dataframe(display,use_container_width=True,hide_index=True)
+    # 선택된 학생 초기화
+    if "selected_student_idx" not in st.session_state:
+        st.session_state.selected_student_idx = None
 
-    st.markdown("---"); st.subheader("🔎 학생별 상세 보기")
-    student_options=filtered.apply(lambda r:f"{r['student_class']} / {r['student_id']} / {r['student_name']}",axis=1).tolist()
-    sel=st.selectbox("학생 선택",["(선택)"]+student_options)
-    if sel!="(선택)":
-        idx=student_options.index(sel); row=filtered.iloc[idx]
-        for i,ref in enumerate(REFS,1):
-            is_ok=row[f"q{i}_correct"] in (1,True,"1","true")
-            with st.expander(f"문항 {i}. {ref['label']} — {row[f'q{i}_score']}점 {'✅' if is_ok else '❌'}"):
-                st.markdown(f"**작성 내용:** {row[f'q{i}_citation']}")
-                st.markdown(f"**올바른 형식:** `{ref['correct_display']}`")
-                errs=json.loads(row[f"q{i}_errors"]) if row[f"q{i}_errors"] else []
-                for e in errs: st.markdown(f"- {e}")
-        st.markdown("---")
-        del_key=f"confirm_del_{row['id']}"
-        if st.button(f"🗑️ '{row['student_name']}' 제출 기록 삭제",use_container_width=True): st.session_state[del_key]=True
-        if st.session_state.get(del_key):
-            st.warning(f"⚠️ '{row['student_name']}' 의 제출 기록을 삭제하시겠습니까?")
-            da,db_=st.columns(2)
-            with da:
-                if st.button("확인 - 삭제",type="primary",use_container_width=True,key=f"del_confirm_{row['id']}"):
-                    delete_submission(row["id"]); st.session_state[del_key]=False; st.success("삭제되었습니다."); st.rerun()
-            with db_:
-                if st.button("취소",use_container_width=True,key=f"del_cancel_{row['id']}"): st.session_state[del_key]=False; st.rerun()
+    # 목록 테이블 (이름 클릭 버튼)
+    st.markdown("**📋 제출 목록** — 이름을 클릭하면 상세 내용을 볼 수 있습니다.")
+    header = ["제출 시간","수업반","학번","이름","총점","1번","2번","3번","4번"]
+    hcols = st.columns([2,2,1.5,1.5,1,1,1,1,1])
+    for col, h in zip(hcols, header):
+        col.markdown(f"**{h}**")
+    st.markdown("<hr style='margin:4px 0'>", unsafe_allow_html=True)
+
+    for idx, row in filtered.iterrows():
+        c1,c2,c3,c4,c5,c6,c7,c8,c9 = st.columns([2,2,1.5,1.5,1,1,1,1,1])
+        c1.caption(row["timestamp"][:16])
+        c2.caption(row["student_class"])
+        c3.caption(row["student_id"])
+        is_selected = st.session_state.selected_student_idx == idx
+        btn_label = f"{'▼ ' if is_selected else ''}{row['student_name']}"
+        if c4.button(btn_label, key=f"btn_{idx}", use_container_width=True):
+            st.session_state.selected_student_idx = None if is_selected else idx
+            st.rerun()
+        c5.markdown(f"**{row['total_score']}점**")
+        for ci, col in enumerate([c6,c7,c8,c9], 1):
+            ok = row[f"q{ci}_correct"] in (1, True, "1", "true")
+            col.markdown("✅" if ok else "❌")
+
+        # 이름 클릭 시 바로 아래에 상세 표시
+        if st.session_state.selected_student_idx == idx:
+            st.markdown(f"<div style='background:#f0f4ff;border-radius:8px;padding:1rem 1.2rem;margin:0.5rem 0 1rem'>", unsafe_allow_html=True)
+            st.markdown(f"**{row['student_class']} / {row['student_id']} / {row['student_name']}** 상세 결과")
+            for i, ref in enumerate(REFS, 1):
+                is_ok = row[f"q{i}_correct"] in (1, True, "1", "true")
+                with st.expander(f"문항 {i}. {ref['label']} — {row[f'q{i}_score']}점 {'✅' if is_ok else '❌'}"):
+                    st.markdown(f"**작성 내용:** {row[f'q{i}_citation']}")
+                    st.markdown(f"**올바른 형식:** `{ref['correct_display']}`")
+                    errs = json.loads(row[f"q{i}_errors"]) if row[f"q{i}_errors"] else []
+                    for e in errs: st.markdown(f"- {e}")
+            del_key = f"confirm_del_{row['id']}"
+            if st.button(f"🗑️ '{row['student_name']}' 제출 기록 삭제", key=f"delbtn_{idx}", use_container_width=True):
+                st.session_state[del_key] = True
+            if st.session_state.get(del_key):
+                st.warning(f"⚠️ '{row['student_name']}' 의 제출 기록을 삭제하시겠습니까?")
+                da, db_ = st.columns(2)
+                with da:
+                    if st.button("확인 - 삭제", type="primary", use_container_width=True, key=f"del_confirm_{row['id']}"):
+                        delete_submission(row["id"]); st.session_state[del_key]=False
+                        st.session_state.selected_student_idx=None
+                        st.success("삭제되었습니다."); st.rerun()
+                with db_:
+                    if st.button("취소", use_container_width=True, key=f"del_cancel_{row['id']}"):
+                        st.session_state[del_key]=False; st.rerun()
+            st.markdown("</div>", unsafe_allow_html=True)
 
     st.markdown("---")
     csv=filtered.to_csv(index=False).encode("utf-8-sig")
