@@ -1,3 +1,7 @@
+import re
+import streamlit as st
+
+# 참고문헌 데이터 설정
 REFS = [
     {
         "no": 1,
@@ -285,3 +289,73 @@ REFS = [
         ],
     },
 ]
+
+
+def evaluate_submission(user_input, ref_data):
+    """학생 작성 답안을 검사하고 점수와 오류 목록을 반환합니다."""
+    if not user_input.strip():
+        return 0, ["답안이 입력되지 않았습니다."]
+
+    score = 0
+    errors = []
+
+    # 필수 구성요소 확인
+    for check in ref_data["checks"]:
+        if re.search(check["pattern"], user_input):
+            score += check["score"]
+        else:
+            errors.append(check["error"])
+
+    # 세부 문장부호/형식 검사 및 감점 처리
+    for extra in ref_data.get("extra_checks", []):
+        if not re.search(extra["pattern"], user_input):
+            score = max(0, score - extra["penalty"])
+            errors.append(extra["error"])
+
+    return score, errors
+
+
+# UI 구성
+st.set_page_config(page_title="APA 7판 참고문헌 작성 연습", layout="wide")
+
+st.title("📚 APA 7판 참고문헌 작성 연습 프로그램")
+st.write(
+    "제시된 정보를 바탕으로 **APA 7판 양식**에 맞춰 참고문헌을 작성한 후 [채점하기]를 눌러보세요."
+)
+
+# 탭 생성
+tabs = st.tabs([f"{ref['no']}. {ref['label']}" for ref in REFS])
+
+for idx, ref in enumerate(REFS):
+    with tabs[idx]:
+        st.subheader(f"문항 {ref['no']}: {ref['label']}")
+
+        # 정보 출력
+        st.markdown("**[제시된 정보]**")
+        for key, val in ref["fields"]:
+            st.write(f"- **{key}**: {val}")
+
+        st.info(f"💡 **작성 힌트**: `{ref['format_hint']}`")
+
+        # 입력창 및 채점 버튼
+        user_ans = st.text_input(
+            "참고문헌 작성 입력:",
+            key=f"input_{ref['id']}",
+            placeholder="예: 저자. (연도). 제목. 출판사.",
+        )
+
+        if st.button("채점하기", key=f"btn_{ref['id']}"):
+            score, errors = evaluate_submission(user_ans, ref)
+
+            st.divider()
+            st.markdown(f"### 📊 채점 결과: **{score} / 100점**")
+
+            if score == 100:
+                st.success("🎉 정답입니다! APA 규칙을 완벽하게 작성하셨습니다.")
+            else:
+                st.warning("⚠️ 다음 작성 항목을 다시 확인해 보세요:")
+                for err in errors:
+                    st.write(f"- {err}")
+
+            with st.expander("모범 답안 확인하기"):
+                st.code(ref["correct_display"], language="text")
