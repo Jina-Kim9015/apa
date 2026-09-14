@@ -448,6 +448,67 @@ st.set_page_config(
     page_title="APA 7판 참고문헌 작성 연습",
     layout="wide",
 )
+st.markdown(
+    """
+    <style>
+    /* 왼쪽 사이드바 너비 */
+    [data-testid="stSidebar"] {
+        min-width: 280px;
+        max-width: 320px;
+    }
+
+    /* 사이드바 전체 글씨 크기 */
+    [data-testid="stSidebar"] * {
+        font-size: 17px;
+    }
+
+    /* 사이드바 제목 */
+    [data-testid="stSidebar"] h1,
+    [data-testid="stSidebar"] h2,
+    [data-testid="stSidebar"] h3 {
+        font-size: 23px !important;
+        line-height: 1.5 !important;
+        margin-bottom: 20px !important;
+    }
+
+    /* 페이지 선택 안내 문구 */
+    [data-testid="stSidebar"] [data-testid="stWidgetLabel"] p {
+        font-size: 18px !important;
+        font-weight: 600 !important;
+        line-height: 1.6 !important;
+        margin-bottom: 14px !important;
+    }
+
+    /* 라디오 메뉴 전체 */
+    [data-testid="stSidebar"] [role="radiogroup"] {
+        gap: 14px !important;
+    }
+
+    /* 라디오 메뉴 각각의 항목 */
+    [data-testid="stSidebar"] [role="radiogroup"] label {
+        min-height: 44px !important;
+        padding: 8px 6px !important;
+        margin-bottom: 8px !important;
+        line-height: 1.6 !important;
+        font-size: 18px !important;
+    }
+
+    /* 라디오 버튼 옆 메뉴 글씨 */
+    [data-testid="stSidebar"] [role="radiogroup"] label p {
+        font-size: 18px !important;
+        line-height: 1.6 !important;
+        margin: 0 !important;
+    }
+
+    /* 선택된 메뉴가 잘 보이도록 강조 */
+    [data-testid="stSidebar"] [role="radiogroup"] label:has(input:checked) {
+        font-weight: 700 !important;
+    }
+
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
 
 CLASSES = ["G", "H", "I1", "I2", "J1", "J2"]
 
