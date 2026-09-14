@@ -414,6 +414,93 @@ REFS = [
 
 
 # ============================================================
+# 기본 설정
+# ============================================================
+
+st.set_page_config(
+    page_title="APA 7판 참고문헌 작성 연습",
+    layout="wide",
+)
+
+CLASSES = ["G", "H", "I1", "I2", "J1", "J2"]
+
+TEACHER_PASSWORD = "1234"
+
+DB_PATH = "reference_results.db"
+
+
+# ============================================================
+# 화면 디자인
+# ============================================================
+
+st.markdown(
+    """
+    <style>
+    [data-testid="stSidebar"] {
+        min-width: 280px;
+        max-width: 320px;
+    }
+
+    [data-testid="stSidebar"] * {
+        font-size: 17px;
+    }
+
+    [data-testid="stSidebar"] h1,
+    [data-testid="stSidebar"] h2,
+    [data-testid="stSidebar"] h3 {
+        font-size: 23px !important;
+        line-height: 1.5 !important;
+        margin-bottom: 20px !important;
+    }
+
+    [data-testid="stSidebar"] [data-testid="stWidgetLabel"] p {
+        font-size: 18px !important;
+        font-weight: 600 !important;
+        line-height: 1.6 !important;
+        margin-bottom: 14px !important;
+    }
+
+    [data-testid="stSidebar"] [role="radiogroup"] {
+        gap: 14px !important;
+    }
+
+    [data-testid="stSidebar"] [role="radiogroup"] label {
+        min-height: 44px !important;
+        padding: 8px 6px !important;
+        margin-bottom: 8px !important;
+        line-height: 1.6 !important;
+        font-size: 18px !important;
+    }
+
+    [data-testid="stSidebar"] [role="radiogroup"] label p {
+        font-size: 18px !important;
+        line-height: 1.6 !important;
+        margin: 0 !important;
+    }
+
+    [data-testid="stSidebar"]
+    [role="radiogroup"]
+    label:has(input:checked) {
+        font-weight: 700 !important;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
+
+# ============================================================
+# 세션 상태
+# ============================================================
+
+if "show_result" not in st.session_state:
+    st.session_state["show_result"] = False
+
+if "last_result" not in st.session_state:
+    st.session_state["last_result"] = None
+
+
+# ============================================================
 # 채점 함수
 # ============================================================
 
@@ -441,99 +528,11 @@ def evaluate_submission(user_input, ref_data):
 
 
 # ============================================================
-# 기본 설정
-# ============================================================
-
-st.set_page_config(
-    page_title="APA 7판 참고문헌 작성 연습",
-    layout="wide",
-)
-st.markdown(
-    """
-    <style>
-    /* 왼쪽 사이드바 너비 */
-    [data-testid="stSidebar"] {
-        min-width: 280px;
-        max-width: 320px;
-    }
-
-    /* 사이드바 전체 글씨 크기 */
-    [data-testid="stSidebar"] * {
-        font-size: 17px;
-    }
-
-    /* 사이드바 제목 */
-    [data-testid="stSidebar"] h1,
-    [data-testid="stSidebar"] h2,
-    [data-testid="stSidebar"] h3 {
-        font-size: 23px !important;
-        line-height: 1.5 !important;
-        margin-bottom: 20px !important;
-    }
-
-    /* 페이지 선택 안내 문구 */
-    [data-testid="stSidebar"] [data-testid="stWidgetLabel"] p {
-        font-size: 18px !important;
-        font-weight: 600 !important;
-        line-height: 1.6 !important;
-        margin-bottom: 14px !important;
-    }
-
-    /* 라디오 메뉴 전체 */
-    [data-testid="stSidebar"] [role="radiogroup"] {
-        gap: 14px !important;
-    }
-
-    /* 라디오 메뉴 각각의 항목 */
-    [data-testid="stSidebar"] [role="radiogroup"] label {
-        min-height: 44px !important;
-        padding: 8px 6px !important;
-        margin-bottom: 8px !important;
-        line-height: 1.6 !important;
-        font-size: 18px !important;
-    }
-
-    /* 라디오 버튼 옆 메뉴 글씨 */
-    [data-testid="stSidebar"] [role="radiogroup"] label p {
-        font-size: 18px !important;
-        line-height: 1.6 !important;
-        margin: 0 !important;
-    }
-
-    /* 선택된 메뉴가 잘 보이도록 강조 */
-    [data-testid="stSidebar"] [role="radiogroup"] label:has(input:checked) {
-        font-weight: 700 !important;
-    }
-
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
-
-CLASSES = ["G", "H", "I1", "I2", "J1", "J2"]
-
-TEACHER_PASSWORD = "1234"
-
-DB_PATH = "reference_results.db"
-
-
-# ============================================================
-# 세션 상태 초기화
-# ============================================================
-
-if "show_result" not in st.session_state:
-    st.session_state["show_result"] = False
-
-if "last_result" not in st.session_state:
-    st.session_state["last_result"] = None
-
-
-# ============================================================
 # 데이터베이스 함수
 # ============================================================
 
 def init_database():
-    """학생 제출 결과 저장용 데이터베이스를 생성합니다."""
+    """결과 저장용 데이터베이스를 생성합니다."""
 
     conn = sqlite3.connect(DB_PATH)
 
@@ -562,7 +561,7 @@ def save_submission(
     details,
     total_score,
 ):
-    """학생 제출 결과를 데이터베이스에 저장합니다."""
+    """학생 제출 결과를 저장합니다."""
 
     conn = sqlite3.connect(DB_PATH)
 
@@ -599,11 +598,66 @@ def save_submission(
     conn.close()
 
 
+def delete_submission(submission_id):
+    """제출 결과 한 건을 삭제합니다."""
+
+    conn = sqlite3.connect(DB_PATH)
+
+    cursor = conn.execute(
+        "DELETE FROM submissions WHERE id = ?",
+        (submission_id,),
+    )
+
+    deleted = cursor.rowcount > 0
+
+    conn.commit()
+    conn.close()
+
+    return deleted
+
+
+def find_reference(detail):
+    """저장된 결과에 연결되는 참고문헌 자료를 찾습니다."""
+
+    detail_no = detail.get("no")
+    detail_id = detail.get("id")
+
+    for ref in REFS:
+        if detail_no is not None and ref["no"] == detail_no:
+            return ref
+
+        if detail_id and ref["id"] == detail_id:
+            return ref
+
+    return None
+
+
+def get_correct_display(detail):
+    """
+    기존 데이터에 모범 답안이 없어도
+    현재 참고문헌 데이터에서 모범 답안을 찾아 반환합니다.
+    """
+
+    saved_correct_display = detail.get(
+        "correct_display"
+    )
+
+    if saved_correct_display:
+        return saved_correct_display
+
+    matching_ref = find_reference(detail)
+
+    if matching_ref:
+        return matching_ref["correct_display"]
+
+    return None
+
+
 def load_submissions(
     class_filter="전체",
     name_filter="",
 ):
-    """교사용 페이지에서 제출 결과를 불러옵니다."""
+    """교사용 제출 결과를 불러옵니다."""
 
     conn = sqlite3.connect(DB_PATH)
 
@@ -667,19 +721,21 @@ def load_submissions(
         }
 
         for detail in details:
-            question_no = detail["no"]
+            question_no = detail.get("no")
 
-            record[f"문항 {question_no} 점수"] = detail[
-                "score"
-            ]
-
-            record[f"문항 {question_no} 학생 답안"] = (
-                detail["answer"]
+            record[f"문항 {question_no} 점수"] = (
+                detail.get("score", 0)
             )
 
-            if detail["errors"]:
+            record[f"문항 {question_no} 학생 답안"] = (
+                detail.get("answer", "")
+            )
+
+            errors = detail.get("errors", [])
+
+            if errors:
                 record[f"문항 {question_no} 오류"] = (
-                    " | ".join(detail["errors"])
+                    " | ".join(errors)
                 )
             else:
                 record[f"문항 {question_no} 오류"] = "없음"
@@ -690,7 +746,52 @@ def load_submissions(
 
 
 # ============================================================
-# XLS 파일 생성 함수
+# 결과표 생성
+# ============================================================
+
+def make_summary_dataframe(records):
+    """
+    교사용 상단 결과표에 표시할 열만 구성합니다.
+    """
+
+    summary_rows = []
+
+    for record in records:
+        summary_rows.append(
+            {
+                "제출일시": record["제출일시"],
+                "학급": record["학급"],
+                "학번": record["학번"],
+                "학생이름": record["학생이름"],
+                "총점": record["총점"],
+                "문항 1 점수": record.get(
+                    "문항 1 점수",
+                    0,
+                ),
+                "문항 2 점수": record.get(
+                    "문항 2 점수",
+                    0,
+                ),
+                "문항 3 점수": record.get(
+                    "문항 3 점수",
+                    0,
+                ),
+                "문항 4 점수": record.get(
+                    "문항 4 점수",
+                    0,
+                ),
+                "문항 5 점수": record.get(
+                    "문항 5 점수",
+                    0,
+                ),
+            }
+        )
+
+    return pd.DataFrame(summary_rows)
+
+
+# ============================================================
+# XLS 다운로드 함수
 # ============================================================
 
 def make_xls_file(records):
@@ -774,15 +875,13 @@ def make_xls_file(records):
 
 
 # ============================================================
-# 다시 풀기 함수
+# 다시 풀기
 # ============================================================
 
 def retry_questions():
     """기존 입력 내용을 유지한 채 문제 풀이 화면으로 돌아갑니다."""
 
-    result = st.session_state.get(
-        "last_result"
-    )
+    result = st.session_state.get("last_result")
 
     if result:
         st.session_state["student_class"] = (
@@ -807,7 +906,7 @@ def retry_questions():
 
 
 # ============================================================
-# 학생용 페이지
+# 학생용 화면
 # ============================================================
 
 def render_student_form():
@@ -887,7 +986,7 @@ def render_student_form():
 
         submitted = st.form_submit_button(
             "전체 답안 제출 및 한 번에 채점",
-            use_container_width=True,
+            width="stretch",
         )
 
     if submitted:
@@ -923,7 +1022,9 @@ def render_student_form():
                     "answer": answer,
                     "score": score,
                     "errors": errors,
-                    "correct_display": ref["correct_display"],
+                    "correct_display": (
+                        ref["correct_display"]
+                    ),
                 }
             )
 
@@ -964,22 +1065,13 @@ def render_student_result(result):
     col1, col2, col3, col4 = st.columns(4)
 
     with col1:
-        st.metric(
-            "학급",
-            result["class_name"],
-        )
+        st.metric("학급", result["class_name"])
 
     with col2:
-        st.metric(
-            "학번",
-            result["student_number"],
-        )
+        st.metric("학번", result["student_number"])
 
     with col3:
-        st.metric(
-            "학생",
-            result["student_name"],
-        )
+        st.metric("학생", result["student_name"])
 
     with col4:
         st.metric(
@@ -999,22 +1091,19 @@ def render_student_result(result):
         )
 
     for detail in result["details"]:
-        score = detail["score"]
-        errors = detail["errors"]
-
         st.subheader(
             f"문항 {detail['no']}: "
             f"{detail['label']}"
         )
 
         st.write(
-            f"점수: **{score} / 100점**"
+            f"점수: **{detail['score']} / 100점**"
         )
 
-        if errors:
+        if detail["errors"]:
             st.markdown("**틀린 이유**")
 
-            for error in errors:
+            for error in detail["errors"]:
                 st.error(error)
         else:
             st.success(
@@ -1025,13 +1114,128 @@ def render_student_result(result):
 
     if st.button(
         "다시 풀기",
-        use_container_width=True,
+        width="stretch",
     ):
         retry_questions()
 
 
 # ============================================================
-# 교사용 페이지
+# 교사용 상세 결과 화면
+# ============================================================
+
+def render_teacher_detail(record):
+    """선택한 학생의 상세 결과를 표시합니다."""
+
+    st.subheader("선택한 학생의 상세 결과")
+
+    st.write(
+        f"제출일시: **{record['제출일시']}**"
+    )
+
+    st.write(
+        f"학급: **{record['학급']}**"
+    )
+
+    st.write(
+        f"학번: **{record['학번']}**"
+    )
+
+    st.write(
+        f"학생이름: **{record['학생이름']}**"
+    )
+
+    st.write(
+        f"총점: **{record['총점']}점**"
+    )
+
+    st.divider()
+
+    details = record.get("_details", [])
+
+    for detail in details:
+        question_no = detail.get("no")
+        label = detail.get("label", "")
+        score = detail.get("score", 0)
+        answer = detail.get("answer", "")
+        errors = detail.get("errors", [])
+
+        st.markdown(
+            f"### 문항 {question_no}: {label}"
+        )
+
+        st.write(
+            f"점수: **{score} / 100점**"
+        )
+
+        st.markdown("**학생이 작성한 답안**")
+
+        st.code(
+            answer or "입력된 답안이 없습니다.",
+            language="text",
+        )
+
+        if errors:
+            st.markdown("**틀린 이유**")
+
+            for error in errors:
+                st.warning(error)
+        else:
+            st.success(
+                "이 문항은 모든 채점 기준을 통과했습니다."
+            )
+
+        st.markdown("**모범 답안**")
+
+        correct_display = get_correct_display(
+            detail
+        )
+
+        if correct_display:
+            st.code(
+                correct_display,
+                language="text",
+            )
+        else:
+            st.warning(
+                "이 문항의 모범 답안을 찾을 수 없습니다."
+            )
+
+        st.divider()
+
+    st.subheader("제출 결과 삭제")
+
+    delete_confirm = st.checkbox(
+        "이 제출 결과를 삭제하는 것에 동의합니다.",
+        key=f"delete_confirm_{record['제출번호']}",
+    )
+
+    if st.button(
+        "이 제출 결과 삭제",
+        key=f"delete_button_{record['제출번호']}",
+        width="content",
+    ):
+        if not delete_confirm:
+            st.warning(
+                "삭제하려면 먼저 확인란을 선택해 주세요."
+            )
+        else:
+            deleted = delete_submission(
+                record["제출번호"]
+            )
+
+            if deleted:
+                st.success(
+                    "해당 제출 결과가 삭제되었습니다."
+                )
+                st.rerun()
+            else:
+                st.error(
+                    "삭제할 제출 결과를 찾지 못했습니다."
+                )
+
+
+# ============================================================
+# 교사용 화면
 # ============================================================
 
 def render_teacher_page():
@@ -1040,8 +1244,7 @@ def render_teacher_page():
     st.title("교사용 참고문헌 채점 결과")
 
     st.write(
-        "비밀번호를 입력하면 학생별 답안과 "
-        "문항별 모범 답안을 확인할 수 있습니다."
+        "비밀번호를 입력하면 제출 결과를 확인할 수 있습니다."
     )
 
     password = st.text_input(
@@ -1088,44 +1291,45 @@ def render_teacher_page():
         )
         return
 
-    visible_records = []
-
-    for record in records:
-        visible_record = {
-            key: value
-            for key, value in record.items()
-            if key != "_details"
-        }
-
-        visible_records.append(visible_record)
-
-    result_df = pd.DataFrame(
-        visible_records
-    )
-
     st.divider()
 
-    metric_col1, metric_col2 = st.columns(2)
+    st.subheader("제출 결과")
 
-    with metric_col1:
-        st.metric(
-            "제출 건수",
-            f"{len(result_df)}건",
-        )
-
-    with metric_col2:
-        st.metric(
-            "평균 점수",
-            f"{result_df['총점'].mean():.1f}점",
-        )
-
-    st.subheader("학생별 채점 결과")
-
-    st.dataframe(
-        result_df,
-        use_container_width=True,
-        hide_index=True,
+    st.caption(
+        "상세 결과를 확인하려면 학생이름이 있는 행을 클릭하세요."
     )
+
+    summary_df = make_summary_dataframe(
+        records
+    )
+
+    table_event = st.dataframe(
+        summary_df,
+        width="stretch",
+        hide_index=True,
+        on_select="rerun",
+        selection_mode="single-row",
+        key="teacher_summary_table",
+    )
+
+    selected_rows = []
+
+    try:
+        selected_rows = table_event.selection.rows
+    except AttributeError:
+        selected_rows = []
+
+    if selected_rows:
+        selected_index = selected_rows[0]
+
+        if 0 <= selected_index < len(records):
+            selected_record = records[selected_index]
+
+            st.divider()
+
+            render_teacher_detail(
+                selected_record
+            )
 
     st.divider()
 
@@ -1138,10 +1342,10 @@ def render_teacher_page():
         data=xls_data,
         file_name="참고문헌_채점결과.xls",
         mime="application/vnd.ms-excel",
-        use_container_width=True,
+        width="stretch",
     )
 
-    csv_data = result_df.to_csv(
+    csv_data = summary_df.to_csv(
         index=False,
         encoding="utf-8-sig",
     )
@@ -1151,81 +1355,12 @@ def render_teacher_page():
         data=csv_data,
         file_name="참고문헌_채점결과.csv",
         mime="text/csv",
-        use_container_width=True,
+        width="stretch",
     )
 
     st.caption(
-        "XLS 파일에는 제출일시, 학급, 학번, 학생이름, "
-        "총점, 문항별 점수, 학생 답안, 오류 내용이 포함됩니다."
+        "Excel 파일에는 학생별 제출 결과와 문항별 점수가 포함됩니다."
     )
-
-    st.divider()
-
-    st.subheader("학생별 상세 결과 및 모범 답안")
-
-    for record in records:
-        details = record.get(
-            "_details",
-            [],
-        )
-
-        title = (
-            f"{record['제출일시']} | "
-            f"{record['학급']} | "
-            f"{record['학번']} | "
-            f"{record['학생이름']} | "
-            f"{record['총점']}점"
-        )
-
-        with st.expander(title):
-            st.write(
-                f"학급: **{record['학급']}**"
-            )
-
-            st.write(
-                f"학번: **{record['학번']}**"
-            )
-
-            st.write(
-                f"학생이름: **{record['학생이름']}**"
-            )
-
-            for detail in details:
-                st.markdown(
-                    f"### 문항 {detail['no']}: "
-                    f"{detail['label']}"
-                )
-
-                st.write(
-                    f"점수: **{detail['score']} / 100점**"
-                )
-
-                st.markdown("**학생이 작성한 답안**")
-
-                st.code(
-                    detail["answer"]
-                    or "입력된 답안이 없습니다.",
-                    language="text",
-                )
-
-                if detail["errors"]:
-                    st.markdown("**틀린 이유**")
-
-                    for error in detail["errors"]:
-                        st.warning(error)
-                else:
-                    st.success(
-                        "이 문항은 모든 채점 기준을 통과했습니다."
-                    )
-
-                st.markdown("**모범 답안**")
-
-                st.code(
-                    detail["correct_display"],
-                    language="text",
-                )
-
-                st.divider()
 
 
 # ============================================================
@@ -1246,8 +1381,9 @@ page = st.sidebar.radio(
 
 if page == "학생용 문제 풀이":
     if st.session_state["show_result"]:
-        result = st.session_state["last_result"]
-        render_student_result(result)
+        render_student_result(
+            st.session_state["last_result"]
+        )
     else:
         render_student_form()
 else:
