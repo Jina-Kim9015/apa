@@ -24,6 +24,10 @@ REFS = [
             ("출판사", "(주)라이프사이언스"),
         ],
         "format_hint": "저자. (출판연도). 제목 (판수). 출판사.",
+        "correct_display": (
+            "이진범, 고석찬, 문병용, 박인호, 박훤범, 전현식. "
+            "(2016). 식물생리학 (2판). 라이프사이언스."
+        ),
         "checks": [
             {
                 "name": "저자",
@@ -58,21 +62,30 @@ REFS = [
         ],
         "extra_checks": [
             {
-                "pattern": r"전현식\.\s*$2016$",
-                "error": "마지막 저자 뒤 마침표가 없습니다.",
+                "pattern": r"전현식\.",
+                "error": (
+                    "마지막 저자 뒤 마침표가 없습니다. "
+                    "예: 전현식."
+                ),
                 "penalty": 10,
             },
             {
                 "pattern": r"2016$\.\s*식물생리학",
-                "error": "연도 괄호 뒤 마침표가 없습니다.",
+                "error": (
+                    "연도 괄호 뒤 마침표가 없습니다. "
+                    "예: (2016)."
+                ),
                 "penalty": 10,
             },
             {
                 "pattern": (
-                    r"식물생리학.*?\.\s*"
+                    r"식물생리학\s*$2판$\.\s*"
                     r"(?:$주$)?라이프사이언스"
                 ),
-                "error": "제목 또는 판수 뒤 마침표가 없습니다.",
+                "error": (
+                    "제목 또는 판수 뒤 마침표가 없습니다. "
+                    "예: 식물생리학 (2판)."
+                ),
                 "penalty": 10,
             },
         ],
@@ -89,6 +102,10 @@ REFS = [
             ("출판사", "씨마스"),
         ],
         "format_hint": "저자. (출판연도). 제목. 출판사.",
+        "correct_display": (
+            "정인경, 김영민, 손영운, 이재붕, 이준기. "
+            "(2019). 고등학교 과학사. 씨마스."
+        ),
         "checks": [
             {
                 "name": "저자",
@@ -129,18 +146,27 @@ REFS = [
         ],
         "extra_checks": [
             {
-                "pattern": r"이준기\.\s*$2019$",
-                "error": "마지막 저자 뒤 마침표가 없습니다.",
+                "pattern": r"이준기\.",
+                "error": (
+                    "마지막 저자 뒤 마침표가 없습니다. "
+                    "예: 이준기."
+                ),
                 "penalty": 10,
             },
             {
                 "pattern": r"2019$\.\s*고등학교",
-                "error": "연도 괄호 뒤 마침표가 없습니다.",
+                "error": (
+                    "연도 괄호 뒤 마침표가 없습니다. "
+                    "예: (2019)."
+                ),
                 "penalty": 10,
             },
             {
-                "pattern": r"과학사\.\s*씨마스",
-                "error": "제목 뒤 마침표가 없습니다.",
+                "pattern": r"고등학교\s*과학사\.\s*씨마스",
+                "error": (
+                    "제목 뒤 마침표가 없습니다. "
+                    "예: 고등학교 과학사."
+                ),
                 "penalty": 10,
             },
         ],
@@ -161,6 +187,12 @@ REFS = [
         "format_hint": (
             "저자. (출판연도). 논문제목. "
             "학술지명, 권(호), 페이지. DOI"
+        ),
+        "correct_display": (
+            "김민수, 이지영. (2021). "
+            "코로나19 이후 비대면 교육의 효과성 분석. "
+            "교육학연구, 59(3), 25-52. "
+            "https://doi.org/10.30916/kera.59.3.25"
         ),
         "checks": [
             {
@@ -206,29 +238,30 @@ REFS = [
                 "name": "페이지",
                 "score": 15,
                 "pattern": r"25[-–]52",
-                "error": (
-                    "페이지 '25-52'가 없거나 "
-                    "잘못 표기되었습니다."
-                ),
+                "error": "페이지 '25-52'가 없거나 잘못 표기되었습니다.",
             },
             {
                 "name": "DOI",
                 "score": 10,
                 "pattern": r"doi\.org/10\.30916/kera\.59\.3\.25",
-                "error": (
-                    "DOI 주소가 없거나 잘못 표기되었습니다."
-                ),
+                "error": "DOI 주소가 없거나 잘못 표기되었습니다.",
             },
         ],
         "extra_checks": [
             {
-                "pattern": r"이지영\.\s*$2021$",
-                "error": "마지막 저자 뒤 마침표가 없습니다.",
+                "pattern": r"이지영\.",
+                "error": (
+                    "마지막 저자 뒤 마침표가 없습니다. "
+                    "예: 이지영."
+                ),
                 "penalty": 10,
             },
             {
                 "pattern": r"교육학연구,\s*59",
-                "error": "학술지명과 권호 사이 쉼표가 없습니다.",
+                "error": (
+                    "학술지명과 권호 사이 쉼표가 없습니다. "
+                    "예: 교육학연구,"
+                ),
                 "penalty": 10,
             },
         ],
@@ -247,6 +280,11 @@ REFS = [
         "format_hint": (
             "저자/기관. (연도. 월. 일). "
             "제목. 웹사이트명. URL"
+        ),
+        "correct_display": (
+            "한국교육개발원. (2023. 5. 10). "
+            "2023 교육통계 연보. 한국교육개발원. "
+            "https://kedi.re.kr/kedi/main/main.do"
         ),
         "checks": [
             {
@@ -314,15 +352,18 @@ REFS = [
         "format_hint": (
             "저자. (연도. 월. 일). 기사제목. 신문사. URL"
         ),
+        "correct_display": (
+            "박지수. (2023. 9. 15). "
+            "인공지능 교육, 초등학교부터 의무화 추진. "
+            "한겨레. "
+            "https://www.hani.co.kr/arti/society/education/example"
+        ),
         "checks": [
             {
                 "name": "저자",
                 "score": 20,
                 "pattern": r"박지수",
-                "error": (
-                    "저자 '박지수'가 없거나 "
-                    "잘못 표기되었습니다."
-                ),
+                "error": "저자 '박지수'가 없거나 잘못 표기되었습니다.",
             },
             {
                 "name": "날짜",
@@ -346,10 +387,7 @@ REFS = [
                 "name": "신문사",
                 "score": 20,
                 "pattern": r"한겨레",
-                "error": (
-                    "신문사 '한겨레'가 없거나 "
-                    "잘못 표기되었습니다."
-                ),
+                "error": "신문사 '한겨레'가 없거나 잘못 표기되었습니다.",
             },
             {
                 "name": "URL",
@@ -363,8 +401,11 @@ REFS = [
         ],
         "extra_checks": [
             {
-                "pattern": r"박지수\.\s*$2023",
-                "error": "저자 뒤 마침표가 없습니다.",
+                "pattern": r"박지수\.",
+                "error": (
+                    "저자 뒤 마침표가 없습니다. "
+                    "예: 박지수."
+                ),
                 "penalty": 10,
             },
         ],
@@ -410,10 +451,8 @@ st.set_page_config(
 
 CLASSES = ["G", "H", "I1", "I2", "J1", "J2"]
 
-# 교사용 페이지 비밀번호
 TEACHER_PASSWORD = "1234"
 
-# 제출 결과 저장 파일
 DB_PATH = "reference_results.db"
 
 
@@ -594,9 +633,7 @@ def load_submissions(
 # ============================================================
 
 def make_xls_file(records):
-    """
-    Excel에서 열 수 있는 XLS 파일을 생성합니다.
-    """
+    """Excel에서 열 수 있는 XLS 파일을 생성합니다."""
 
     if not records:
         return b""
@@ -680,12 +717,11 @@ def make_xls_file(records):
 # ============================================================
 
 def retry_questions():
-    """
-    채점 결과를 닫고 문제 풀이 화면으로 돌아갑니다.
-    기존에 입력했던 학급, 학번, 이름, 답안은 유지합니다.
-    """
+    """기존 입력 내용을 유지한 채 문제 풀이 화면으로 돌아갑니다."""
 
-    result = st.session_state.get("last_result")
+    result = st.session_state.get(
+        "last_result"
+    )
 
     if result:
         st.session_state["student_class"] = (
@@ -701,18 +737,16 @@ def retry_questions():
         )
 
         for detail in result["details"]:
-            answer_key = f"answer_{detail['id']}"
-
-            st.session_state[answer_key] = (
-                detail["answer"]
-            )
+            st.session_state[
+                f"answer_{detail['id']}"
+            ] = detail["answer"]
 
     st.session_state["show_result"] = False
     st.rerun()
 
 
 # ============================================================
-# 학생용 문제 풀이 페이지
+# 학생용 페이지
 # ============================================================
 
 def render_student_form():
@@ -748,14 +782,12 @@ def render_student_form():
             student_number = st.text_input(
                 "학번",
                 key="student_number",
-                placeholder="예: 31025",
             )
 
         with col3:
             student_name = st.text_input(
                 "학생 이름",
                 key="student_name",
-                placeholder="예: 홍길동",
             )
 
         st.divider()
@@ -781,16 +813,13 @@ def render_student_form():
             )
 
             st.info(
-                f"작성 힌트: `{ref['format_hint']}`"
+                f"작성 형식: `{ref['format_hint']}`"
             )
 
             answers[ref["id"]] = st.text_area(
                 "참고문헌 작성",
                 key=f"answer_{ref['id']}",
                 height=100,
-                placeholder=(
-                    "예: 저자. (연도). 제목. 출판사."
-                ),
             )
 
             st.divider()
@@ -833,6 +862,7 @@ def render_student_form():
                     "answer": answer,
                     "score": score,
                     "errors": errors,
+                    "correct_display": ref["correct_display"],
                 }
             )
 
@@ -862,10 +892,7 @@ def render_student_form():
 
 
 def render_student_result(result):
-    """
-    학생에게 채점 결과를 표시합니다.
-    모범 답안은 표시하지 않고 틀린 이유만 표시합니다.
-    """
+    """학생에게 점수와 틀린 이유만 표시합니다."""
 
     st.title("채점 결과")
 
@@ -914,27 +941,26 @@ def render_student_result(result):
         score = detail["score"]
         errors = detail["errors"]
 
-        with st.container(border=True):
-            st.subheader(
-                f"문항 {detail['no']}: "
-                f"{detail['label']}"
+        st.subheader(
+            f"문항 {detail['no']}: "
+            f"{detail['label']}"
+        )
+
+        st.write(
+            f"점수: **{score} / 100점**"
+        )
+
+        if errors:
+            st.markdown("**틀린 이유**")
+
+            for error in errors:
+                st.error(error)
+        else:
+            st.success(
+                "이 문항은 모든 채점 기준을 통과했습니다."
             )
 
-            st.write(
-                f"점수: **{score} / 100점**"
-            )
-
-            if errors:
-                st.markdown("**틀린 이유**")
-
-                for error in errors:
-                    st.error(error)
-            else:
-                st.success(
-                    "이 문항은 모든 채점 기준을 통과했습니다."
-                )
-
-    st.divider()
+        st.divider()
 
     if st.button(
         "다시 풀기",
@@ -953,14 +979,13 @@ def render_teacher_page():
     st.title("교사용 참고문헌 채점 결과")
 
     st.write(
-        "학생들의 제출 결과를 학급별로 확인하고 "
-        "Excel 파일로 다운로드할 수 있습니다."
+        "비밀번호를 입력하면 학생별 답안과 "
+        "문항별 모범 답안을 확인할 수 있습니다."
     )
 
     password = st.text_input(
         "교사 비밀번호",
         type="password",
-        placeholder="교사 비밀번호를 입력하세요.",
     )
 
     if password != TEACHER_PASSWORD:
@@ -989,7 +1014,6 @@ def render_teacher_page():
     with filter_col2:
         name_filter = st.text_input(
             "학생 이름 검색",
-            placeholder="검색하지 않으려면 비워 두세요.",
         )
 
     records = load_submissions(
@@ -1020,7 +1044,7 @@ def render_teacher_page():
 
     st.divider()
 
-    metric_col1, metric_col2, metric_col3 = st.columns(3)
+    metric_col1, metric_col2 = st.columns(2)
 
     with metric_col1:
         st.metric(
@@ -1034,12 +1058,6 @@ def render_teacher_page():
             f"{result_df['총점'].mean():.1f}점",
         )
 
-    with metric_col3:
-        st.metric(
-            "최고 점수",
-            f"{result_df['총점'].max():.1f}점",
-        )
-
     st.subheader("학생별 채점 결과")
 
     st.dataframe(
@@ -1047,52 +1065,6 @@ def render_teacher_page():
         use_container_width=True,
         hide_index=True,
     )
-
-    st.divider()
-
-    st.subheader("학급별 통계")
-
-    class_statistics = []
-
-    for class_name in CLASSES:
-        class_records = [
-            record
-            for record in records
-            if record["학급"] == class_name
-        ]
-
-        if not class_records:
-            continue
-
-        class_scores = [
-            record["총점"]
-            for record in class_records
-        ]
-
-        class_statistics.append(
-            {
-                "학급": class_name,
-                "제출 건수": len(class_records),
-                "평균 점수": round(
-                    sum(class_scores)
-                    / len(class_scores),
-                    1,
-                ),
-                "최고 점수": max(class_scores),
-                "최저 점수": min(class_scores),
-            }
-        )
-
-    if class_statistics:
-        statistics_df = pd.DataFrame(
-            class_statistics
-        )
-
-        st.dataframe(
-            statistics_df,
-            use_container_width=True,
-            hide_index=True,
-        )
 
     st.divider()
 
@@ -1128,7 +1100,7 @@ def render_teacher_page():
 
     st.divider()
 
-    st.subheader("제출 결과 상세 확인")
+    st.subheader("학생별 상세 결과 및 모범 답안")
 
     for record in records:
         details = record.get(
@@ -1167,13 +1139,30 @@ def render_teacher_page():
                     f"점수: **{detail['score']} / 100점**"
                 )
 
+                st.markdown("**학생이 작성한 답안**")
+
+                st.code(
+                    detail["answer"]
+                    or "입력된 답안이 없습니다.",
+                    language="text",
+                )
+
                 if detail["errors"]:
                     st.markdown("**틀린 이유**")
 
                     for error in detail["errors"]:
                         st.warning(error)
                 else:
-                    st.success("오류 없음")
+                    st.success(
+                        "이 문항은 모든 채점 기준을 통과했습니다."
+                    )
+
+                st.markdown("**모범 답안**")
+
+                st.code(
+                    detail["correct_display"],
+                    language="text",
+                )
 
                 st.divider()
 
