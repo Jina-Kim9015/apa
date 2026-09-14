@@ -483,6 +483,24 @@ st.markdown(
     label:has(input:checked) {
         font-weight: 700 !important;
     }
+
+    .result-header {
+        font-weight: 700;
+        padding: 8px 4px;
+        border-bottom: 2px solid #888;
+    }
+
+    .result-row {
+        padding: 5px 0;
+        border-bottom: 1px solid #dddddd;
+    }
+
+    .selected-result {
+        padding: 10px;
+        border: 2px solid #4a90e2;
+        border-radius: 6px;
+        background-color: #f5f9ff;
+    }
     </style>
     """,
     unsafe_allow_html=True,
@@ -498,6 +516,9 @@ if "show_result" not in st.session_state:
 
 if "last_result" not in st.session_state:
     st.session_state["last_result"] = None
+
+if "selected_submission_id" not in st.session_state:
+    st.session_state["selected_submission_id"] = None
 
 
 # ============================================================
@@ -532,7 +553,7 @@ def evaluate_submission(user_input, ref_data):
 # ============================================================
 
 def init_database():
-    """결과 저장용 데이터베이스를 생성합니다."""
+    """학생 제출 결과 저장용 데이터베이스를 생성합니다."""
 
     conn = sqlite3.connect(DB_PATH)
 
@@ -598,26 +619,55 @@ def save_submission(
     conn.close()
 
 
-def delete_submission(submission_id):
-    """제출 결과 한 건을 삭제합니다."""
+def delete_selected_submissions(submission_ids):
+    """선택한 제출 결과를 삭제합니다."""
+
+    if not submission_ids:
+        return 0
 
     conn = sqlite3.connect(DB_PATH)
 
-    cursor = conn.execute(
-        "DELETE FROM submissions WHERE id = ?",
-        (submission_id,),
+    placeholders = ",".join(
+        "?" for _ in submission_ids
     )
 
-    deleted = cursor.rowcount > 0
+    query = (
+        "DELETE FROM submissions "
+        f"WHERE id IN ({placeholders})"
+    )
+
+    cursor = conn.execute(
+        query,
+        submission_ids,
+    )
+
+    deleted_count = cursor.rowcount
 
     conn.commit()
     conn.close()
 
-    return deleted
+    return deleted_count
+
+
+def delete_all_submissions():
+    """모든 제출 결과를 삭제합니다."""
+
+    conn = sqlite3.connect(DB_PATH)
+
+    cursor = conn.execute(
+        "DELETE FROM submissions"
+    )
+
+    deleted_count = cursor.rowcount
+
+    conn.commit()
+    conn.close()
+
+    return deleted_count
 
 
 def find_reference(detail):
-    """저장된 결과에 연결되는 참고문헌 자료를 찾습니다."""
+    """제출 결과에 연결되는 참고문헌 자료를 찾습니다."""
 
     detail_no = detail.get("no")
     detail_id = detail.get("id")
@@ -634,8 +684,8 @@ def find_reference(detail):
 
 def get_correct_display(detail):
     """
-    기존 데이터에 모범 답안이 없어도
-    현재 참고문헌 데이터에서 모범 답안을 찾아 반환합니다.
+    기존 저장 데이터에 모범 답안이 없어도
+    현재 REFS에서 모범 답안을 찾아 반환합니다.
     """
 
     saved_correct_display = detail.get(
@@ -727,11 +777,19 @@ def load_submissions(
                 detail.get("score", 0)
             )
 
-            record[f"문항 {question_no} 학생 답안"] = (
-                detail.get("answer", "")
+            records_answer = detail.get(
+                "answer",
+                "",
             )
 
-            errors = detail.get("errors", [])
+            record[f"문항 {question_no} 학생 답안"] = (
+                records_answer
+            )
+
+            errors = detail.get(
+                "errors",
+                [],
+            )
 
             if errors:
                 record[f"문항 {question_no} 오류"] = (
@@ -746,52 +804,7 @@ def load_submissions(
 
 
 # ============================================================
-# 결과표 생성
-# ============================================================
-
-def make_summary_dataframe(records):
-    """
-    교사용 상단 결과표에 표시할 열만 구성합니다.
-    """
-
-    summary_rows = []
-
-    for record in records:
-        summary_rows.append(
-            {
-                "제출일시": record["제출일시"],
-                "학급": record["학급"],
-                "학번": record["학번"],
-                "학생이름": record["학생이름"],
-                "총점": record["총점"],
-                "문항 1 점수": record.get(
-                    "문항 1 점수",
-                    0,
-                ),
-                "문항 2 점수": record.get(
-                    "문항 2 점수",
-                    0,
-                ),
-                "문항 3 점수": record.get(
-                    "문항 3 점수",
-                    0,
-                ),
-                "문항 4 점수": record.get(
-                    "문항 4 점수",
-                    0,
-                ),
-                "문항 5 점수": record.get(
-                    "문항 5 점수",
-                    0,
-                ),
-            }
-        )
-
-    return pd.DataFrame(summary_rows)
-
-
-# ============================================================
-# XLS 다운로드 함수
+# XLS 파일 생성
 # ============================================================
 
 def make_xls_file(records):
@@ -881,7 +894,9 @@ def make_xls_file(records):
 def retry_questions():
     """기존 입력 내용을 유지한 채 문제 풀이 화면으로 돌아갑니다."""
 
-    result = st.session_state.get("last_result")
+    result = st.session_state.get(
+        "last_result"
+    )
 
     if result:
         st.session_state["student_class"] = (
@@ -1120,7 +1135,7 @@ def render_student_result(result):
 
 
 # ============================================================
-# 교사용 상세 결과 화면
+# 교사용 상세 결과
 # ============================================================
 
 def render_teacher_detail(record):
@@ -1150,9 +1165,7 @@ def render_teacher_detail(record):
 
     st.divider()
 
-    details = record.get("_details", [])
-
-    for detail in details:
+    for detail in record.get("_details", []):
         question_no = detail.get("no")
         label = detail.get("label", "")
         score = detail.get("score", 0)
@@ -1202,40 +1215,9 @@ def render_teacher_detail(record):
 
         st.divider()
 
-    st.subheader("제출 결과 삭제")
-
-    delete_confirm = st.checkbox(
-        "이 제출 결과를 삭제하는 것에 동의합니다.",
-        key=f"delete_confirm_{record['제출번호']}",
-    )
-
-    if st.button(
-        "이 제출 결과 삭제",
-        key=f"delete_button_{record['제출번호']}",
-        width="content",
-    ):
-        if not delete_confirm:
-            st.warning(
-                "삭제하려면 먼저 확인란을 선택해 주세요."
-            )
-        else:
-            deleted = delete_submission(
-                record["제출번호"]
-            )
-
-            if deleted:
-                st.success(
-                    "해당 제출 결과가 삭제되었습니다."
-                )
-                st.rerun()
-            else:
-                st.error(
-                    "삭제할 제출 결과를 찾지 못했습니다."
-                )
-
 
 # ============================================================
-# 교사용 화면
+# 교사용 결과표
 # ============================================================
 
 def render_teacher_page():
@@ -1244,7 +1226,7 @@ def render_teacher_page():
     st.title("교사용 참고문헌 채점 결과")
 
     st.write(
-        "비밀번호를 입력하면 제출 결과를 확인할 수 있습니다."
+        "학생 이름을 클릭하면 상세 결과가 표시됩니다."
     )
 
     password = st.text_input(
@@ -1291,45 +1273,239 @@ def render_teacher_page():
         )
         return
 
-    st.divider()
+    visible_ids = {
+        record["제출번호"]
+        for record in records
+    }
 
+    selected_delete_ids = []
+
+    st.divider()
     st.subheader("제출 결과")
 
     st.caption(
-        "상세 결과를 확인하려면 학생이름이 있는 행을 클릭하세요."
+        "학생 이름을 클릭하면 상세 결과를 볼 수 있습니다. "
+        "삭제할 결과는 왼쪽 확인란에서 선택하세요."
     )
 
-    summary_df = make_summary_dataframe(
-        records
+    header_columns = st.columns(
+        [
+            0.45,
+            1.7,
+            1.4,
+            0.7,
+            0.9,
+            0.9,
+            0.65,
+            0.65,
+            0.65,
+            0.65,
+            0.65,
+        ]
     )
 
-    table_event = st.dataframe(
-        summary_df,
-        width="stretch",
-        hide_index=True,
-        on_select="rerun",
-        selection_mode="single-row",
-        key="teacher_summary_table",
-    )
+    headers = [
+        "삭제",
+        "제출일시",
+        "학급",
+        "학번",
+        "학생이름",
+        "총점",
+        "문항 1",
+        "문항 2",
+        "문항 3",
+        "문항 4",
+        "문항 5",
+    ]
 
-    selected_rows = []
-
-    try:
-        selected_rows = table_event.selection.rows
-    except AttributeError:
-        selected_rows = []
-
-    if selected_rows:
-        selected_index = selected_rows[0]
-
-        if 0 <= selected_index < len(records):
-            selected_record = records[selected_index]
-
-            st.divider()
-
-            render_teacher_detail(
-                selected_record
+    for column, header in zip(
+        header_columns,
+        headers,
+    ):
+        with column:
+            st.markdown(
+                f'<div class="result-header">'
+                f"{header}"
+                f"</div>",
+                unsafe_allow_html=True,
             )
+
+    for record in records:
+        submission_id = record["제출번호"]
+
+        row_columns = st.columns(
+            [
+                0.45,
+                1.7,
+                1.4,
+                0.7,
+                0.9,
+                0.9,
+                0.65,
+                0.65,
+                0.65,
+                0.65,
+                0.65,
+            ]
+        )
+
+        with row_columns[0]:
+            checked = st.checkbox(
+                "삭제 선택",
+                key=f"delete_select_{submission_id}",
+                label_visibility="collapsed",
+            )
+
+            if checked:
+                selected_delete_ids.append(
+                    submission_id
+                )
+
+        with row_columns[1]:
+            st.markdown(
+                f'<div class="result-row">'
+                f"{record['제출일시']}"
+                f"</div>",
+                unsafe_allow_html=True,
+            )
+
+        with row_columns[2]:
+            st.markdown(
+                f'<div class="result-row">'
+                f"{record['학급']}"
+                f"</div>",
+                unsafe_allow_html=True,
+            )
+
+        with row_columns[3]:
+            st.markdown(
+                f'<div class="result-row">'
+                f"{record['학번']}"
+                f"</div>",
+                unsafe_allow_html=True,
+            )
+
+        with row_columns[4]:
+            if st.button(
+                record["학생이름"],
+                key=f"student_name_{submission_id}",
+                width="stretch",
+            ):
+                st.session_state[
+                    "selected_submission_id"
+                ] = submission_id
+
+                st.rerun()
+
+        with row_columns[5]:
+            st.markdown(
+                f'<div class="result-row">'
+                f"{record['총점']}"
+                f"</div>",
+                unsafe_allow_html=True,
+            )
+
+        for index in range(1, 6):
+            with row_columns[index + 5]:
+                score = record.get(
+                    f"문항 {index} 점수",
+                    0,
+                )
+
+                st.markdown(
+                    f'<div class="result-row">'
+                    f"{score}"
+                    f"</div>",
+                    unsafe_allow_html=True,
+                )
+
+    st.divider()
+
+    delete_col1, delete_col2 = st.columns(2)
+
+    with delete_col1:
+        if st.button(
+            "선택한 결과 삭제",
+            width="stretch",
+        ):
+            if not selected_delete_ids:
+                st.warning(
+                    "삭제할 결과를 먼저 선택해 주세요."
+                )
+            else:
+                deleted_count = (
+                    delete_selected_submissions(
+                        selected_delete_ids
+                    )
+                )
+
+                selected_id = st.session_state.get(
+                    "selected_submission_id"
+                )
+
+                if selected_id in selected_delete_ids:
+                    st.session_state[
+                        "selected_submission_id"
+                    ] = None
+
+                st.success(
+                    f"{deleted_count}개의 제출 결과를 삭제했습니다."
+                )
+                st.rerun()
+
+    with delete_col2:
+        delete_all_confirm = st.checkbox(
+            "전체 삭제에 동의합니다.",
+            key="delete_all_confirm",
+        )
+
+        if st.button(
+            "전체 결과 삭제",
+            width="stretch",
+        ):
+            if not delete_all_confirm:
+                st.warning(
+                    "전체 삭제를 하려면 확인란을 선택해 주세요."
+                )
+            else:
+                deleted_count = delete_all_submissions()
+
+                st.session_state[
+                    "selected_submission_id"
+                ] = None
+
+                st.success(
+                    f"{deleted_count}개의 제출 결과를 모두 삭제했습니다."
+                )
+                st.rerun()
+
+    selected_submission_id = st.session_state.get(
+        "selected_submission_id"
+    )
+
+    if selected_submission_id in visible_ids:
+        selected_record = next(
+            record
+            for record in records
+            if record["제출번호"]
+            == selected_submission_id
+        )
+
+        st.divider()
+
+        st.markdown(
+            '<div class="selected-result">',
+            unsafe_allow_html=True,
+        )
+
+        render_teacher_detail(
+            selected_record
+        )
+
+        st.markdown(
+            "</div>",
+            unsafe_allow_html=True,
+        )
 
     st.divider()
 
@@ -1345,6 +1521,43 @@ def render_teacher_page():
         width="stretch",
     )
 
+    summary_rows = []
+
+    for record in records:
+        summary_rows.append(
+            {
+                "제출일시": record["제출일시"],
+                "학급": record["학급"],
+                "학번": record["학번"],
+                "학생이름": record["학생이름"],
+                "총점": record["총점"],
+                "문항 1 점수": record.get(
+                    "문항 1 점수",
+                    0,
+                ),
+                "문항 2 점수": record.get(
+                    "문항 2 점수",
+                    0,
+                ),
+                "문항 3 점수": record.get(
+                    "문항 3 점수",
+                    0,
+                ),
+                "문항 4 점수": record.get(
+                    "문항 4 점수",
+                    0,
+                ),
+                "문항 5 점수": record.get(
+                    "문항 5 점수",
+                    0,
+                ),
+            }
+        )
+
+    summary_df = pd.DataFrame(
+        summary_rows
+    )
+
     csv_data = summary_df.to_csv(
         index=False,
         encoding="utf-8-sig",
@@ -1356,10 +1569,6 @@ def render_teacher_page():
         file_name="참고문헌_채점결과.csv",
         mime="text/csv",
         width="stretch",
-    )
-
-    st.caption(
-        "Excel 파일에는 학생별 제출 결과와 문항별 점수가 포함됩니다."
     )
 
 
