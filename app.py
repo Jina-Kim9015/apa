@@ -9,6 +9,50 @@ import streamlit as st
 
 
 # ============================================================
+# 입력 정리 함수
+# ============================================================
+
+def normalize_text(text):
+    """
+    채점 전에 답안을 정리합니다.
+    공백을 모두 제거하고 전각 기호를 반각 기호로 바꿉니다.
+    """
+
+    if not text:
+        return ""
+
+    replacements = {
+        "（": "(",
+        "）": ")",
+        "［": "[",
+        "］": "]",
+        "．": ".",
+        "。": ".",
+        "，": ",",
+        "、": ",",
+        "：": ":",
+        "；": ";",
+        "–": "-",
+        "—": "-",
+        "−": "-",
+        "‐": "-",
+        "〜": "-",
+        "~": "-",
+        "’": "'",
+        "‘": "'",
+        "“": '"',
+        "”": '"',
+    }
+
+    for before, after in replacements.items():
+        text = text.replace(before, after)
+
+    text = re.sub(r"\s+", "", text)
+
+    return text
+
+
+# ============================================================
 # 참고문헌 데이터
 # ============================================================
 
@@ -33,8 +77,8 @@ REFS = [
                 "name": "저자",
                 "score": 25,
                 "pattern": (
-                    r"이진범.{0,10}고석찬.{0,10}문병용.{0,10}"
-                    r"박인호.{0,10}박훤범.{0,10}전현식"
+                    r"이진범.{0,2}고석찬.{0,2}문병용.{0,2}"
+                    r"박인호.{0,2}박훤범.{0,2}전현식"
                 ),
                 "error": (
                     "저자 '이진범, 고석찬, 문병용, 박인호, "
@@ -44,7 +88,7 @@ REFS = [
             {
                 "name": "연도",
                 "score": 25,
-                "pattern": r"$2016$",
+                "pattern": r"[(]2016[)]",
                 "error": "출판연도가 (2016) 형식으로 없습니다.",
             },
             {
@@ -57,12 +101,15 @@ REFS = [
                 "name": "출판사",
                 "score": 25,
                 "pattern": r"라이프사이언스",
-                "error": "출판사 '라이프사이언스'가 없거나 잘못 표기되었습니다.",
+                "error": (
+                    "출판사 '라이프사이언스'가 없거나 "
+                    "잘못 표기되었습니다."
+                ),
             },
         ],
         "extra_checks": [
             {
-                "pattern": r"전현식\.",
+                "pattern": r"전현식[.]",
                 "error": (
                     "마지막 저자 뒤 마침표가 없습니다. "
                     "예: 전현식."
@@ -70,7 +117,7 @@ REFS = [
                 "penalty": 10,
             },
             {
-                "pattern": r"2016$\.\s*식물생리학",
+                "pattern": r"[(]2016[)][.]",
                 "error": (
                     "연도 괄호 뒤 마침표가 없습니다. "
                     "예: (2016)."
@@ -78,10 +125,15 @@ REFS = [
                 "penalty": 10,
             },
             {
-                "pattern": (
-                    r"식물생리학\s*$2판$\.\s*"
-                    r"(?:$주$)?라이프사이언스"
+                "pattern": r"[(]2판[)]",
+                "error": (
+                    "판수는 (2판) 형식으로 제목 뒤에 적어야 합니다. "
+                    "예: 식물생리학 (2판)"
                 ),
+                "penalty": 10,
+            },
+            {
+                "pattern": r"[.][(]?주?[)]?라이프사이언스",
                 "error": (
                     "제목 또는 판수 뒤 마침표가 없습니다. "
                     "예: 식물생리학 (2판)."
@@ -111,8 +163,8 @@ REFS = [
                 "name": "저자",
                 "score": 25,
                 "pattern": (
-                    r"정인경.{0,10}김영민.{0,10}손영운."
-                    r"{0,10}이재붕.{0,10}이준기"
+                    r"정인경.{0,2}김영민.{0,2}손영운.{0,2}"
+                    r"이재붕.{0,2}이준기"
                 ),
                 "error": (
                     "저자 '정인경, 김영민, 손영운, 이재붕, "
@@ -122,7 +174,7 @@ REFS = [
             {
                 "name": "연도",
                 "score": 25,
-                "pattern": r"$2019$",
+                "pattern": r"[(]2019[)]",
                 "error": (
                     "출판연도는 쇄 연도(2026)가 아닌 "
                     "초판 연도인 (2019) 형식으로 작성해야 합니다."
@@ -131,7 +183,7 @@ REFS = [
             {
                 "name": "제목",
                 "score": 25,
-                "pattern": r"고등학교\s*과학사",
+                "pattern": r"고등학교과학사",
                 "error": (
                     "제목 '고등학교 과학사'가 없거나 "
                     "잘못 표기되었습니다."
@@ -146,7 +198,7 @@ REFS = [
         ],
         "extra_checks": [
             {
-                "pattern": r"이준기\.",
+                "pattern": r"이준기[.]",
                 "error": (
                     "마지막 저자 뒤 마침표가 없습니다. "
                     "예: 이준기."
@@ -154,7 +206,7 @@ REFS = [
                 "penalty": 10,
             },
             {
-                "pattern": r"2019$\.\s*고등학교",
+                "pattern": r"[(]2019[)][.]",
                 "error": (
                     "연도 괄호 뒤 마침표가 없습니다. "
                     "예: (2019)."
@@ -162,7 +214,7 @@ REFS = [
                 "penalty": 10,
             },
             {
-                "pattern": r"고등학교\s*과학사\.\s*씨마스",
+                "pattern": r"고등학교과학사[.]",
                 "error": (
                     "제목 뒤 마침표가 없습니다. "
                     "예: 고등학교 과학사."
@@ -198,7 +250,7 @@ REFS = [
             {
                 "name": "저자",
                 "score": 15,
-                "pattern": r"김민수.{0,5}이지영",
+                "pattern": r"김민수.{0,2}이지영",
                 "error": (
                     "저자 '김민수, 이지영'이 없거나 "
                     "잘못 표기되었습니다."
@@ -207,16 +259,13 @@ REFS = [
             {
                 "name": "연도",
                 "score": 15,
-                "pattern": r"$2021$",
+                "pattern": r"[(]2021[)]",
                 "error": "출판연도가 (2021) 형식으로 없습니다.",
             },
             {
                 "name": "논문제목",
                 "score": 15,
-                "pattern": (
-                    r"코로나19\s*이후\s*비대면\s*교육의\s*"
-                    r"효과성\s*분석"
-                ),
+                "pattern": r"코로나19이후비대면교육의효과성분석",
                 "error": "논문제목이 없거나 잘못 표기되었습니다.",
             },
             {
@@ -231,25 +280,25 @@ REFS = [
             {
                 "name": "권호",
                 "score": 15,
-                "pattern": r"59\s*$\s*3\s*$",
+                "pattern": r"59[(]3[)]",
                 "error": "권호가 59(3) 형식으로 없습니다.",
             },
             {
                 "name": "페이지",
                 "score": 15,
-                "pattern": r"25[-–]52",
+                "pattern": r"25[-]52",
                 "error": "페이지 '25-52'가 없거나 잘못 표기되었습니다.",
             },
             {
                 "name": "DOI",
                 "score": 10,
-                "pattern": r"doi\.org/10\.30916/kera\.59\.3\.25",
+                "pattern": r"doi[.]org/10[.]30916/kera[.]59[.]3[.]25",
                 "error": "DOI 주소가 없거나 잘못 표기되었습니다.",
             },
         ],
         "extra_checks": [
             {
-                "pattern": r"이지영\.",
+                "pattern": r"이지영[.]",
                 "error": (
                     "마지막 저자 뒤 마침표가 없습니다. "
                     "예: 이지영."
@@ -257,9 +306,17 @@ REFS = [
                 "penalty": 10,
             },
             {
-                "pattern": r"교육학연구,\s*59",
+                "pattern": r"[(]2021[)][.]",
                 "error": (
-                    "학술지명과 권호 사이 쉼표가 없습니다. "
+                    "연도 괄호 뒤 마침표가 없습니다. "
+                    "예: (2021)."
+                ),
+                "penalty": 10,
+            },
+            {
+                "pattern": r"교육학연구,",
+                "error": (
+                    "학술지명 뒤에 쉼표가 없습니다. "
                     "예: 교육학연구,"
                 ),
                 "penalty": 10,
@@ -299,7 +356,7 @@ REFS = [
             {
                 "name": "날짜",
                 "score": 25,
-                "pattern": r"$2023[\.,]\s*5[\.,]\s*10\.?$",
+                "pattern": r"[(]2023[.,]5[.,]10[.]?[)]",
                 "error": (
                     "날짜가 (2023. 5. 10) 형식으로 "
                     "작성되지 않았습니다."
@@ -308,7 +365,7 @@ REFS = [
             {
                 "name": "제목",
                 "score": 20,
-                "pattern": r"2023\s*교육통계\s*연보",
+                "pattern": r"2023교육통계연보",
                 "error": (
                     "제목 '2023 교육통계 연보'가 없거나 "
                     "잘못 표기되었습니다."
@@ -326,14 +383,23 @@ REFS = [
             {
                 "name": "URL",
                 "score": 20,
-                "pattern": r"kedi\.re\.kr",
+                "pattern": r"kedi[.]re[.]kr",
                 "error": (
                     "URL 'https://kedi.re.kr/...'이 "
                     "없거나 잘못 표기되었습니다."
                 ),
             },
         ],
-        "extra_checks": [],
+        "extra_checks": [
+            {
+                "pattern": r"한국교육개발원[.][(]2023",
+                "error": (
+                    "기관명 뒤 마침표가 없습니다. "
+                    "예: 한국교육개발원."
+                ),
+                "penalty": 10,
+            },
+        ],
     },
     {
         "no": 5,
@@ -368,7 +434,7 @@ REFS = [
             {
                 "name": "날짜",
                 "score": 25,
-                "pattern": r"$2023[\.,]\s*9[\.,]\s*15\.?$",
+                "pattern": r"[(]2023[.,]9[.,]15[.]?[)]",
                 "error": (
                     "날짜가 (2023. 9. 15) 형식으로 "
                     "작성되지 않았습니다."
@@ -377,10 +443,7 @@ REFS = [
             {
                 "name": "기사제목",
                 "score": 20,
-                "pattern": (
-                    r"인공지능\s*교육.{0,5}"
-                    r"초등학교부터\s*의무화\s*추진"
-                ),
+                "pattern": r"인공지능교육.{0,3}초등학교부터의무화추진",
                 "error": "기사제목이 없거나 잘못 표기되었습니다.",
             },
             {
@@ -392,7 +455,7 @@ REFS = [
             {
                 "name": "URL",
                 "score": 15,
-                "pattern": r"hani\.co\.kr",
+                "pattern": r"hani[.]co[.]kr",
                 "error": (
                     "URL 'https://www.hani.co.kr/...'이 "
                     "없거나 잘못 표기되었습니다."
@@ -401,16 +464,68 @@ REFS = [
         ],
         "extra_checks": [
             {
-                "pattern": r"박지수\.",
+                "pattern": r"박지수[.]",
                 "error": (
                     "저자 뒤 마침표가 없습니다. "
                     "예: 박지수."
                 ),
                 "penalty": 10,
             },
+            {
+                "pattern": r"한겨레[.]",
+                "error": (
+                    "신문사 뒤 마침표가 없습니다. "
+                    "예: 한겨레."
+                ),
+                "penalty": 10,
+            },
         ],
     },
 ]
+
+
+# ============================================================
+# 채점 함수
+# ============================================================
+
+def evaluate_submission(user_input, ref_data):
+    """
+    학생 답안을 검사하고 점수와 오류 목록을 반환합니다.
+    띄어쓰기는 채점에 영향을 주지 않습니다.
+    """
+
+    normalized_input = normalize_text(user_input)
+
+    if not normalized_input:
+        return 0, ["답안이 입력되지 않았습니다."]
+
+    score = 0
+    errors = []
+
+    for check in ref_data["checks"]:
+        found = re.search(
+            check["pattern"],
+            normalized_input,
+            re.IGNORECASE,
+        )
+
+        if found:
+            score += check["score"]
+        else:
+            errors.append(check["error"])
+
+    for extra in ref_data.get("extra_checks", []):
+        found = re.search(
+            extra["pattern"],
+            normalized_input,
+            re.IGNORECASE,
+        )
+
+        if not found:
+            score = max(0, score - extra["penalty"])
+            errors.append(extra["error"])
+
+    return score, errors
 
 
 # ============================================================
@@ -487,16 +602,16 @@ st.markdown(
     .result-header {
         font-weight: 700;
         padding: 8px 4px;
-        border-bottom: 2px solid #888;
+        border-bottom: 2px solid #888888;
     }
 
     .result-row {
-        padding: 5px 0;
+        padding: 6px 4px;
         border-bottom: 1px solid #dddddd;
     }
 
     .selected-result {
-        padding: 10px;
+        padding: 12px;
         border: 2px solid #4a90e2;
         border-radius: 6px;
         background-color: #f5f9ff;
@@ -519,33 +634,6 @@ if "last_result" not in st.session_state:
 
 if "selected_submission_id" not in st.session_state:
     st.session_state["selected_submission_id"] = None
-
-
-# ============================================================
-# 채점 함수
-# ============================================================
-
-def evaluate_submission(user_input, ref_data):
-    """학생 답안을 검사하고 점수와 오류 목록을 반환합니다."""
-
-    if not user_input.strip():
-        return 0, ["답안이 입력되지 않았습니다."]
-
-    score = 0
-    errors = []
-
-    for check in ref_data["checks"]:
-        if re.search(check["pattern"], user_input):
-            score += check["score"]
-        else:
-            errors.append(check["error"])
-
-    for extra in ref_data.get("extra_checks", []):
-        if not re.search(extra["pattern"], user_input):
-            score = max(0, score - extra["penalty"])
-            errors.append(extra["error"])
-
-    return score, errors
 
 
 # ============================================================
@@ -631,13 +719,9 @@ def delete_selected_submissions(submission_ids):
         "?" for _ in submission_ids
     )
 
-    query = (
-        "DELETE FROM submissions "
-        f"WHERE id IN ({placeholders})"
-    )
-
     cursor = conn.execute(
-        query,
+        "DELETE FROM submissions "
+        f"WHERE id IN ({placeholders})",
         submission_ids,
     )
 
@@ -667,7 +751,7 @@ def delete_all_submissions():
 
 
 def find_reference(detail):
-    """제출 결과에 연결되는 참고문헌 자료를 찾습니다."""
+    """제출 결과와 연결된 참고문헌 자료를 찾습니다."""
 
     detail_no = detail.get("no")
     detail_id = detail.get("id")
@@ -684,8 +768,8 @@ def find_reference(detail):
 
 def get_correct_display(detail):
     """
-    기존 저장 데이터에 모범 답안이 없어도
-    현재 REFS에서 모범 답안을 찾아 반환합니다.
+    예전에 저장된 결과에 모범 답안이 없어도
+    현재 참고문헌 자료에서 찾아 반환합니다.
     """
 
     saved_correct_display = detail.get(
@@ -777,19 +861,11 @@ def load_submissions(
                 detail.get("score", 0)
             )
 
-            records_answer = detail.get(
-                "answer",
-                "",
-            )
-
             record[f"문항 {question_no} 학생 답안"] = (
-                records_answer
+                detail.get("answer", "")
             )
 
-            errors = detail.get(
-                "errors",
-                [],
-            )
+            errors = detail.get("errors", [])
 
             if errors:
                 record[f"문항 {question_no} 오류"] = (
@@ -894,9 +970,7 @@ def make_xls_file(records):
 def retry_questions():
     """기존 입력 내용을 유지한 채 문제 풀이 화면으로 돌아갑니다."""
 
-    result = st.session_state.get(
-        "last_result"
-    )
+    result = st.session_state.get("last_result")
 
     if result:
         st.session_state["student_class"] = (
@@ -1166,31 +1240,27 @@ def render_teacher_detail(record):
     st.divider()
 
     for detail in record.get("_details", []):
-        question_no = detail.get("no")
-        label = detail.get("label", "")
-        score = detail.get("score", 0)
-        answer = detail.get("answer", "")
-        errors = detail.get("errors", [])
-
         st.markdown(
-            f"### 문항 {question_no}: {label}"
+            f"### 문항 {detail.get('no')}: "
+            f"{detail.get('label', '')}"
         )
 
         st.write(
-            f"점수: **{score} / 100점**"
+            f"점수: **{detail.get('score', 0)} / 100점**"
         )
 
         st.markdown("**학생이 작성한 답안**")
 
         st.code(
-            answer or "입력된 답안이 없습니다.",
+            detail.get("answer")
+            or "입력된 답안이 없습니다.",
             language="text",
         )
 
-        if errors:
+        if detail.get("errors"):
             st.markdown("**틀린 이유**")
 
-            for error in errors:
+            for error in detail["errors"]:
                 st.warning(error)
         else:
             st.success(
@@ -1217,7 +1287,7 @@ def render_teacher_detail(record):
 
 
 # ============================================================
-# 교사용 결과표
+# 교사용 화면
 # ============================================================
 
 def render_teacher_page():
@@ -1281,31 +1351,30 @@ def render_teacher_page():
     selected_delete_ids = []
 
     st.divider()
+
     st.subheader("제출 결과")
 
     st.caption(
-        "학생 이름을 클릭하면 상세 결과를 볼 수 있습니다. "
-        "삭제할 결과는 왼쪽 확인란에서 선택하세요."
+        "학생 이름을 클릭하면 상세 결과가 아래에 표시됩니다. "
+        "삭제할 결과는 왼쪽 확인란을 선택한 뒤 삭제 버튼을 누르세요."
     )
 
-    header_columns = st.columns(
-        [
-            0.45,
-            1.7,
-            1.4,
-            0.7,
-            0.9,
-            0.9,
-            0.65,
-            0.65,
-            0.65,
-            0.65,
-            0.65,
-        ]
-    )
+    column_ratio = [
+        0.45,
+        1.6,
+        0.7,
+        0.9,
+        1.1,
+        0.7,
+        0.6,
+        0.6,
+        0.6,
+        0.6,
+        0.6,
+    ]
 
     headers = [
-        "삭제",
+        "선택",
         "제출일시",
         "학급",
         "학번",
@@ -1318,40 +1387,26 @@ def render_teacher_page():
         "문항 5",
     ]
 
+    header_columns = st.columns(column_ratio)
+
     for column, header in zip(
         header_columns,
         headers,
     ):
         with column:
             st.markdown(
-                f'<div class="result-header">'
-                f"{header}"
-                f"</div>",
+                f'<div class="result-header">{header}</div>',
                 unsafe_allow_html=True,
             )
 
     for record in records:
         submission_id = record["제출번호"]
 
-        row_columns = st.columns(
-            [
-                0.45,
-                1.7,
-                1.4,
-                0.7,
-                0.9,
-                0.9,
-                0.65,
-                0.65,
-                0.65,
-                0.65,
-                0.65,
-            ]
-        )
+        row_columns = st.columns(column_ratio)
 
         with row_columns[0]:
             checked = st.checkbox(
-                "삭제 선택",
+                "선택",
                 key=f"delete_select_{submission_id}",
                 label_visibility="collapsed",
             )
@@ -1405,16 +1460,16 @@ def render_teacher_page():
                 unsafe_allow_html=True,
             )
 
-        for index in range(1, 6):
-            with row_columns[index + 5]:
-                score = record.get(
-                    f"문항 {index} 점수",
+        for question_no in range(1, 6):
+            with row_columns[question_no + 5]:
+                question_score = record.get(
+                    f"문항 {question_no} 점수",
                     0,
                 )
 
                 st.markdown(
                     f'<div class="result-row">'
-                    f"{score}"
+                    f"{question_score}"
                     f"</div>",
                     unsafe_allow_html=True,
                 )
@@ -1439,18 +1494,20 @@ def render_teacher_page():
                     )
                 )
 
-                selected_id = st.session_state.get(
-                    "selected_submission_id"
-                )
-
-                if selected_id in selected_delete_ids:
+                if (
+                    st.session_state[
+                        "selected_submission_id"
+                    ]
+                    in selected_delete_ids
+                ):
                     st.session_state[
                         "selected_submission_id"
                     ] = None
 
                 st.success(
-                    f"{deleted_count}개의 제출 결과를 삭제했습니다."
+                    f"{deleted_count}건의 결과를 삭제했습니다."
                 )
+
                 st.rerun()
 
     with delete_col2:
@@ -1475,20 +1532,20 @@ def render_teacher_page():
                 ] = None
 
                 st.success(
-                    f"{deleted_count}개의 제출 결과를 모두 삭제했습니다."
+                    f"{deleted_count}건의 결과를 모두 삭제했습니다."
                 )
+
                 st.rerun()
 
-    selected_submission_id = st.session_state.get(
+    selected_submission_id = st.session_state[
         "selected_submission_id"
-    )
+    ]
 
     if selected_submission_id in visible_ids:
         selected_record = next(
             record
             for record in records
-            if record["제출번호"]
-            == selected_submission_id
+            if record["제출번호"] == selected_submission_id
         )
 
         st.divider()
@@ -1498,14 +1555,22 @@ def render_teacher_page():
             unsafe_allow_html=True,
         )
 
-        render_teacher_detail(
-            selected_record
-        )
+        render_teacher_detail(selected_record)
 
         st.markdown(
             "</div>",
             unsafe_allow_html=True,
         )
+
+        if st.button(
+            "상세 결과 닫기",
+            width="content",
+        ):
+            st.session_state[
+                "selected_submission_id"
+            ] = None
+
+            st.rerun()
 
     st.divider()
 
@@ -1531,32 +1596,15 @@ def render_teacher_page():
                 "학번": record["학번"],
                 "학생이름": record["학생이름"],
                 "총점": record["총점"],
-                "문항 1 점수": record.get(
-                    "문항 1 점수",
-                    0,
-                ),
-                "문항 2 점수": record.get(
-                    "문항 2 점수",
-                    0,
-                ),
-                "문항 3 점수": record.get(
-                    "문항 3 점수",
-                    0,
-                ),
-                "문항 4 점수": record.get(
-                    "문항 4 점수",
-                    0,
-                ),
-                "문항 5 점수": record.get(
-                    "문항 5 점수",
-                    0,
-                ),
+                "문항 1 점수": record.get("문항 1 점수", 0),
+                "문항 2 점수": record.get("문항 2 점수", 0),
+                "문항 3 점수": record.get("문항 3 점수", 0),
+                "문항 4 점수": record.get("문항 4 점수", 0),
+                "문항 5 점수": record.get("문항 5 점수", 0),
             }
         )
 
-    summary_df = pd.DataFrame(
-        summary_rows
-    )
+    summary_df = pd.DataFrame(summary_rows)
 
     csv_data = summary_df.to_csv(
         index=False,
